@@ -11,5 +11,30 @@
 
     <artifactId>lottery-rpc</artifactId>
 
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.wychmod</groupId>
+            <artifactId>lottery-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>lottery-rpc</finalName>
+        <plugins>
+            <!-- 编译plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                    <compilerVersion>1.8</compilerVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
