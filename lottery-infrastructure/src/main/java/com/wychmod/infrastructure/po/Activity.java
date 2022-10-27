@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * 活动基础信息表
+ * <p>
  */
 public class Activity {
 
