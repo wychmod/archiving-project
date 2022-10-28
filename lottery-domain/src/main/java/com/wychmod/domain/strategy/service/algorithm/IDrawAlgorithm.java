@@ -5,7 +5,8 @@ import com.wychmod.domain.strategy.model.vo.AwardRateInfo;
 import java.util.List;
 
 /**
- * 抽奖算法接口
+ * @description: 抽奖算法接口
+ * @author：wychmod
  */
 public interface IDrawAlgorithm {
 

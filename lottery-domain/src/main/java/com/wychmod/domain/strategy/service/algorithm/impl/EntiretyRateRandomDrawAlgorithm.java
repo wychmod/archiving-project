@@ -10,13 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 必中奖策略抽奖，排掉已经中奖的概率，重新计算中奖范围
+ * @description: 必中奖策略抽奖，排掉已经中奖的概率，重新计算中奖范围
+ * @author：wychmod
  */
-@Component("defaultRateRandomDrawAlgorithm")
-public class DefaultRateRandomDrawAlgorithm extends BaseAlgorithm {
+@Component("entiretyRateRandomDrawAlgorithm")
+public class EntiretyRateRandomDrawAlgorithm extends BaseAlgorithm {
+
     @Override
     public String randomDraw(Long strategyId, List<String> excludeAwardIds) {
+
         BigDecimal differenceDenominator = BigDecimal.ZERO;
+
         // 排除掉不在抽奖范围的奖品ID集合
         List<AwardRateInfo> differenceAwardRateInfoList = new ArrayList<>();
         List<AwardRateInfo> awardRateInfos = awardRateInfoMap.get(strategyId);
@@ -36,7 +40,7 @@ public class DefaultRateRandomDrawAlgorithm extends BaseAlgorithm {
             return differenceAwardRateInfoList.get(0).getAwardId();
         }
         // 获取随机概率值
-        int randomVal = new SecureRandom().nextInt(100) + 1;
+        int randomVal = this.generateSecureRandomIntCode(100);
 
         // 循环获取奖品
         String awardId = "";
