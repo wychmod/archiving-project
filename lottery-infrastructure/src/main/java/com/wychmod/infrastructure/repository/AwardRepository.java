@@ -1,4 +1,4 @@
-package com.wychmod.domain.award.repository.impl;
+package com.wychmod.infrastructure.repository;
 
 import com.wychmod.domain.award.repository.IAwardRepository;
 import org.springframework.stereotype.Component;

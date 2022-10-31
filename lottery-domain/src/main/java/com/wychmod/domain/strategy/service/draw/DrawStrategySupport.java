@@ -1,9 +1,8 @@
 package com.wychmod.domain.strategy.service.draw;
 
 import com.wychmod.domain.strategy.model.aggregates.StrategyRich;
+import com.wychmod.domain.strategy.model.vo.AwardBriefVO;
 import com.wychmod.domain.strategy.repository.IStrategyRepository;
-import com.wychmod.domain.strategy.repository.impl.StrategyRepository;
-import com.wychmod.infrastructure.po.Award;
 
 import javax.annotation.Resource;
 
@@ -33,7 +32,7 @@ public class DrawStrategySupport extends DrawConfig{
      * @param awardId 奖品ID
      * @return 中奖详情
      */
-    protected Award queryAwardInfoByAwardId(String awardId){
+    protected AwardBriefVO queryAwardInfoByAwardId(String awardId){
         return strategyRepository.queryAwardInfo(awardId);
     }
 

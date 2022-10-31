@@ -1,7 +1,8 @@
 package com.wychmod.domain.strategy.repository;
 
 import com.wychmod.domain.strategy.model.aggregates.StrategyRich;
-import com.wychmod.infrastructure.po.Award;
+import com.wychmod.domain.strategy.model.vo.AwardBriefVO;
+
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public interface IStrategyRepository {
 
     StrategyRich queryStrategyRich(Long strategyId);
 
-    Award queryAwardInfo(String awardId);
+    AwardBriefVO queryAwardInfo(String awardId);
 
     List<String> queryNoStockStrategyAwardList(Long strategyId);
 
