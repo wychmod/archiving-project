@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 /**
- * @description:
+ * @description: 雪花算法生成策略
  * @author: wychmod
  * @date: 2022/10/31
  */
@@ -27,7 +27,7 @@ public class SnowFlake implements IIdGenerator {
         } catch (Exception e) {
             workerId = NetUtil.getLocalhostStr().hashCode();
         }
-
+        // ipv4 有64位，取出前16位的最低5位，当作机器号
         workerId = workerId >> 16 & 31;
 
         long dataCenterId = 1L;
