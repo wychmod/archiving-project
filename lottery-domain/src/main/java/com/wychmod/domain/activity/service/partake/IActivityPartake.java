@@ -1,5 +1,8 @@
 package com.wychmod.domain.activity.service.partake;
 
+import com.wychmod.domain.activity.model.req.PartakeReq;
+import com.wychmod.domain.activity.res.PartakeResult;
+
 /**
  * @description: 抽奖活动参与接口
  * @author：wychmod
@@ -8,7 +11,9 @@ package com.wychmod.domain.activity.service.partake;
 public interface IActivityPartake {
 
     /**
-     * TODO：待开发活动参与接口
+     * 参与活动
+     * @param req 入参
+     * @return    领取结果
      */
-    void doPartake();
+    PartakeResult doPartake(PartakeReq req);
 }

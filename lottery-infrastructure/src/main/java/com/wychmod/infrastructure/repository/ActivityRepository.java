@@ -1,17 +1,12 @@
 package com.wychmod.infrastructure.repository;
 
 import com.wychmod.Constants;
+import com.wychmod.domain.activity.model.req.PartakeReq;
 import com.wychmod.domain.activity.model.vo.*;
 import com.wychmod.domain.activity.repository.IActivityRepository;
 import com.wychmod.domain.activity.service.stateflow.impl.StateHandlerImpl;
-import com.wychmod.infrastructure.dao.IActivityDao;
-import com.wychmod.infrastructure.dao.IAwardDao;
-import com.wychmod.infrastructure.dao.IStrategyDao;
-import com.wychmod.infrastructure.dao.IStrategyDetailDao;
-import com.wychmod.infrastructure.po.Activity;
-import com.wychmod.infrastructure.po.Award;
-import com.wychmod.infrastructure.po.Strategy;
-import com.wychmod.infrastructure.po.StrategyDetail;
+import com.wychmod.infrastructure.dao.*;
+import com.wychmod.infrastructure.po.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +34,8 @@ public class ActivityRepository implements IActivityRepository {
     private IStrategyDao strategyDao;
     @Resource
     private IStrategyDetailDao strategyDetailDao;
+    @Resource
+    private IUserTakeActivityCountDao userTakeActivityCountDao;
 
 
     @Override
@@ -84,5 +81,38 @@ public class ActivityRepository implements IActivityRepository {
         int count = activityDao.alterState(alterStateVO);
         logger.info("执行完成条数{}", count);
         return 1 == count;
+    }
+
+    @Override
+    public ActivityBillVO queryActivityBill(PartakeReq req) {
+
+        // 查询活动信息
+        Activity activity = activityDao.queryActivityById(req.getActivityId());
+
+        // 查询领取次数
+        UserTakeActivityCount userTakeActivityCountReq = new UserTakeActivityCount();
+        userTakeActivityCountReq.setuId(req.getuId());
+        userTakeActivityCountReq.setActivityId(req.getActivityId());
+        UserTakeActivityCount userTakeActivityCount = userTakeActivityCountDao.queryUserTakeActivityCount(userTakeActivityCountReq);
+
+        // 封装结果信息
+        ActivityBillVO activityBillVO = new ActivityBillVO();
+        activityBillVO.setuId(req.getuId());
+        activityBillVO.setActivityId(req.getActivityId());
+        activityBillVO.setActivityName(activity.getActivityName());
+        activityBillVO.setBeginDateTime(activity.getBeginDateTime());
+        activityBillVO.setEndDateTime(activity.getEndDateTime());
+        activityBillVO.setTakeCount(activity.getTakeCount());
+        activityBillVO.setStockSurplusCount(activity.getStockSurplusCount());
+        activityBillVO.setStrategyId(activity.getStrategyId());
+        activityBillVO.setState(activity.getState());
+        activityBillVO.setUserTakeLeftCount(null == userTakeActivityCount ? null : userTakeActivityCount.getLeftCount());
+
+        return activityBillVO;
+    }
+
+    @Override
+    public int subtractionActivityStock(Long activityId) {
+        return activityDao.subtractionActivityStock(activityId);
     }
 }

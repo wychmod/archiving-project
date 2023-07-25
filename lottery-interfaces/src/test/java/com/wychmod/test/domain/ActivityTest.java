@@ -4,11 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.wychmod.Constants;
 import com.wychmod.domain.activity.model.aggregates.ActivityConfigRich;
 import com.wychmod.domain.activity.model.req.ActivityConfigReq;
+import com.wychmod.domain.activity.model.req.PartakeReq;
 import com.wychmod.domain.activity.model.vo.ActivityVO;
 import com.wychmod.domain.activity.model.vo.AwardVO;
 import com.wychmod.domain.activity.model.vo.StrategyDetailVO;
 import com.wychmod.domain.activity.model.vo.StrategyVO;
+import com.wychmod.domain.activity.res.PartakeResult;
 import com.wychmod.domain.activity.service.deploy.IActivityDeploy;
+import com.wychmod.domain.activity.service.partake.IActivityPartake;
 import com.wychmod.domain.activity.service.stateflow.IStateHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +43,9 @@ public class ActivityTest {
 
     @Resource
     private IStateHandler stateHandler;
+
+    @Resource
+    private IActivityPartake activityPartake;
 
     private ActivityConfigRich activityConfigRich;
 
@@ -171,5 +177,14 @@ public class ActivityTest {
         logger.info("运行活动，测试：{}", JSON.toJSONString(stateHandler.doing(120981321L, Constants.ActivityState.PASS)));
         logger.info("二次提审，测试：{}", JSON.toJSONString(stateHandler.checkPass(120981321L, Constants.ActivityState.EDIT)));
     }
+
+    @Test
+    public void test_activityPartake() {
+        PartakeReq req = new PartakeReq("Uhdgkw766120d", 120981321L);
+        PartakeResult res = activityPartake.doPartake(req);
+        logger.info("请求参数：{}", JSON.toJSONString(req));
+        logger.info("测试结果：{}", JSON.toJSONString(res));
+    }
+
 
 }

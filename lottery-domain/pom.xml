@@ -46,6 +46,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.wychmod</groupId>
+            <artifactId>db-router-springboot-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

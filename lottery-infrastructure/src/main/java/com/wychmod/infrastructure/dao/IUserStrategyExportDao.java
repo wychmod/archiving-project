@@ -5,6 +5,8 @@ import com.wychmod.middleware.db.router.annotation.DBRouter;
 import com.wychmod.middleware.db.router.annotation.DBRouterStrategy;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.security.Key;
+
 /**
  * @description: 用户策略计算结果表DAO
  * @author: wychmod
@@ -26,6 +28,6 @@ public interface IUserStrategyExportDao {
      * @param uId 用户ID
      * @return 用户策略
      */
-    @DBRouter
+    @DBRouter(key = "uId")
     UserStrategyExport queryUserStrategyExportByUId(String uId);
 }

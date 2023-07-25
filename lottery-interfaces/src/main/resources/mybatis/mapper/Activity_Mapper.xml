@@ -39,5 +39,10 @@
         WHERE activity_id = #{activityId}
     </select>
 
+    <update id="subtractionActivityStock" parameterType="long">
+        UPDATE activity set stock_surplus_count = stock_surplus_count - 1
+        WHERE activity_id = #{activityId} AND stock_surplus_count > 0
+    </update>
+
 
 </mapper>
