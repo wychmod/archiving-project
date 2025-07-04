@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @description: 短信发送组件
@@ -20,9 +22,7 @@ import javax.annotation.Resource;
 @Slf4j
 public class SmsComponent {
 
-    private static final String BASE_URL = "https://jmsms.market.alicloudapi.com";
-    private static final String SMS_API_PATH = "/sms/send";
-    private static final String URL_TEMPLATE = BASE_URL + SMS_API_PATH + "?mobile=%s&templateId=%s&value=%s";
+    private static final String BASE_URL = "https://dfsns.market.alicloudapi.com/data/send_sms";
 
     @Resource
     private SmsConfig smsConfig;
@@ -34,20 +34,29 @@ public class SmsComponent {
      * 发送短信验证码
      * @param to 接收手机号
      * @param templateId 短信模板ID
-     * @param value 替换值
+     * @param content 短信内容
      */
-    public void send(String to, String templateId, String value) {
-        String url = String.format(URL_TEMPLATE, to, templateId, value);
-        HttpHeaders headers = new HttpHeaders();
-        // 最后在header中的格式(中间是英文空格)为Authorization:APPCODE 83359fd73fe94948385f570e3c139105
-        headers.set("Authorization", "APPCODE " + smsConfig.getAppCode());
-        HttpEntity<Object> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-        log.info("url={},body={}", url, response.getBody());
-        if (response.getStatusCode().is2xxSuccessful()) {
-            log.info("发送短信验证码成功");
-        } else {
-            log.error("发送短信验证码失败:{}", response.getBody());
+    public void send(String to, String templateId, String content) {
+        try {
+            HttpEntity<String> entity = getStringHttpEntity(to, templateId, content);
+            ResponseEntity<String> response = restTemplate.postForEntity(BASE_URL, entity, String.class);
+            log.info("url={},body={}", BASE_URL, response.getBody());
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("发送短信验证码成功");
+            } else {
+                log.error("发送短信验证码失败:{}", response.getBody());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private HttpEntity<String> getStringHttpEntity(String to, String templateId, String content) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "APPCODE " + smsConfig.getAppCode());
+        headers.set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        String body = "content=" + content + "&template_id=" + templateId + "&phone_number=" + to;
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        return entity;
     }
 }
