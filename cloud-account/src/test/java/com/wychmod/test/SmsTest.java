@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 
 /**
- * @description:
+ * @description: 测试发送短信
  * @author: wychmod
  * @date: 2025-07-04
  */
