@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,6 +37,7 @@ public class SmsComponent {
      * @param templateId 短信模板ID
      * @param content 短信内容
      */
+    @Async("threadPoolTaskExecutor")
     public void send(String to, String templateId, String content) {
         try {
             HttpEntity<String> entity = getStringHttpEntity(to, templateId, content);
