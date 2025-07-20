@@ -7,6 +7,10 @@ spring:
   application:
     name: cloud-account
 
+  devtools:
+    restart:
+      enabled: true
+
 #服务注册发现
   cloud:
     nacos:
