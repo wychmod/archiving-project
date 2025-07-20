@@ -1,14 +1,17 @@
 package com.wychmod.controller;
 
 import com.google.code.kaptcha.Producer;
+import com.wychmod.controller.request.SendCodeRequest;
+import com.wychmod.enums.BizCodeEnum;
+import com.wychmod.enums.SendCodeEnum;
+import com.wychmod.service.NotifyService;
 import com.wychmod.utils.CommonUtil;
+import com.wychmod.utils.JsonData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -35,6 +38,9 @@ public class NotifyController {
     @Autowired
     public StringRedisTemplate redisTemplate;
 
+    @Resource
+    public NotifyService notifyService;
+
     /**
      * 验证码过期时间
      */
@@ -56,6 +62,29 @@ public class NotifyController {
             log.error("获取流出错:{}",e.getMessage());
         }
     }
+
+    @PostMapping("/send_code")
+    public JsonData sendCode(@RequestBody SendCodeRequest sendCodeRequest, HttpServletRequest request){
+
+        String key = getCaptchaKey(request);
+
+        String cacheCaptcha = redisTemplate.opsForValue().get(key);
+
+        String captcha = sendCodeRequest.getCaptcha();
+
+        if(captcha!=null && cacheCaptcha !=null && cacheCaptcha.equalsIgnoreCase(captcha)){
+            //成功
+            JsonData jsonData = notifyService.sendCode(SendCodeEnum.USER_REGISTER,sendCodeRequest.getTo());
+            redisTemplate.delete(key);
+            return jsonData;
+        }else {
+            log.info("captcha:{}, cacheCaptcha:{}", captcha, cacheCaptcha);
+            return JsonData.buildResult(BizCodeEnum.CODE_CAPTCHA_ERROR);
+        }
+
+
+    }
+
 
     private String getCaptchaKey(HttpServletRequest request) {
         String ip = CommonUtil.getIpAddr(request);
