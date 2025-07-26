@@ -55,3 +55,10 @@ mybatis-plus:
 sms:
   app-code: <YOUR_SMS_APP_CODE>
   template-id: CST_ptdie100
+
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    #阿里云id
+    access-key-secret: <YOUR_ALIYUN_OSS_ACCESS_KEY_SECRET>
+    bucket-name: wychmod-link
