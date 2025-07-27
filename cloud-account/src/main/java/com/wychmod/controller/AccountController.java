@@ -1,5 +1,6 @@
 package com.wychmod.controller;
 
+import com.wychmod.controller.request.AccountLoginRequest;
 import com.wychmod.controller.request.AccountRegisterRequest;
 import com.wychmod.enums.BizCodeEnum;
 import com.wychmod.service.AccountService;
@@ -39,7 +40,7 @@ public class AccountController {
         return result != null ? JsonData.buildSuccess(result) : JsonData.buildResult(BizCodeEnum.FILE_UPLOAD_USER_IMG_FAIL);
     }
 
-        /**
+    /**
      * 用户注册接口
      * @param registerRequest 注册请求参数对象，包含用户注册所需的信息
      * @return JsonData 注册结果，包含注册成功或失败的状态信息
@@ -49,6 +50,15 @@ public class AccountController {
 
         // 调用账户服务执行注册逻辑
         JsonData jsonData = accountService.register(registerRequest);
+
+        return jsonData;
+    }
+
+    @PostMapping("/login")
+    public JsonData login(@RequestBody AccountLoginRequest loginRequest) {
+
+        // 调用账户服务执行登录逻辑
+        JsonData jsonData = accountService.login(loginRequest);
 
         return jsonData;
     }
