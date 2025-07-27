@@ -16,7 +16,7 @@ import javax.annotation.Resource;
  * @date: 2025-06-28
  */
 @RestController
-@RequestMapping("/api/v1/account")
+@RequestMapping("/api/account/v1")
 public class AccountController {
 
     @Resource
