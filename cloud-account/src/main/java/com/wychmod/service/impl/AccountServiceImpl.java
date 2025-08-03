@@ -11,6 +11,7 @@ import com.wychmod.model.LoginUser;
 import com.wychmod.service.AccountService;
 import com.wychmod.service.NotifyService;
 import com.wychmod.utils.CommonUtil;
+import com.wychmod.utils.IDUtil;
 import com.wychmod.utils.JWTUtil;
 import com.wychmod.utils.JsonData;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
         accountDO.setAuth(AuthTypeEnum.DEFAULT.name());
 
         // 生成唯一账号
-        accountDO.setAccountNo(CommonUtil.getCurrentTimestamp());
+        accountDO.setAccountNo(Long.parseLong(IDUtil.geneSnowFlakeID().toString()));
 
         // 设置密码 秘钥 盐
         accountDO.setSecret("$1$"+CommonUtil.getStringNumRandom(8));
