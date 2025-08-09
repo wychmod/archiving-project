@@ -23,7 +23,7 @@ public class MyBatisPlusGenerator {
         // 是否支持AR模式
         config.setActiveRecord(true)
                 // 作者
-                .setAuthor("二当家小D")
+                .setAuthor("wychmod")
                 // 生成路径，最好使用绝对路径，window路径是不一样的
                 //TODO  TODO  TODO  TODO
                 .setOutputDir("D:\\idea\\cloud-short-link\\cloud-account\\src\\test\\java\\com\\wychmod\\db")
