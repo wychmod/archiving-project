@@ -1,12 +1,14 @@
 package com.wychmod.component;
 
 import com.wychmod.utils.CommonUtil;
+import org.springframework.stereotype.Component;
 
 /**
  * @description: 短链接生成组件类，用于将输入参数转换为短链接码
  * @author: wychmod
  * @date: 2025-08-10
  */
+@Component
 public class ShortLinkComponent {
 
     private static final String CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
