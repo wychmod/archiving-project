@@ -1,5 +1,6 @@
 package com.wychmod.utils;
 
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
@@ -174,4 +175,17 @@ public class CommonUtil {
         }
 
     }
+
+
+    /**
+     * 计算字符串的MurmurHash32哈希值
+     *
+     * @param param 待计算哈希值的字符串参数
+     * @return 返回计算得到的32位MurmurHash值，以long类型表示
+     */
+    public static long murmurHash32(String param) {
+        // 使用Murmur3_32算法计算字符串的哈希值，并将结果扩展为long类型
+        return Hashing.murmur3_32().hashUnencodedChars(param).padToLong();
+    }
+
 }
