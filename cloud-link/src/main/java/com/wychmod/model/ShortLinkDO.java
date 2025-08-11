@@ -10,9 +10,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * <p>
- * 
- * </p>
  *
  * @author wychmod
  * @since 2025-08-10

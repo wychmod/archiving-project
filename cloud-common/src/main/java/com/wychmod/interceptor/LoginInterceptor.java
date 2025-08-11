@@ -63,11 +63,11 @@ public class LoginInterceptor implements HandlerInterceptor {
 
             // 解析token中的用户信息并构建LoginUser对象
             long accountNo = Long.parseLong(claims.get("account_no").toString());
-            String username = claims.get("username").toString();
-            String headImg = claims.get("head_img").toString();
-            String mail = claims.get("mail").toString();
-            String phone = claims.get("phone").toString();
-            String auth = claims.get("auth").toString();
+            String username = claims.get("username") == null ? "" : claims.get("username").toString();
+            String headImg = claims.get("head_img") == null ? "" : claims.get("head_img").toString();
+            String mail = claims.get("mail") == null ? "" : claims.get("mail").toString();
+            String phone = claims.get("phone") == null ? "" : claims.get("phone").toString();
+            String auth = claims.get("auth") == null ? "" : claims.get("auth").toString();
             LoginUser loginUser = LoginUser.builder()
                     .accountNo(accountNo)
                     .username(username)
@@ -80,7 +80,9 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        return HandlerInterceptor.super.preHandle(request, response, handler);
+        CommonUtil.sendJsonMessage(response,JsonData.buildResult(BizCodeEnum.ACCOUNT_UNLOGIN));
+
+        return false;
     }
 
     /**

@@ -5,6 +5,8 @@ import com.wychmod.interceptor.LoginInterceptor;
 import com.wychmod.manage.LinkGroupManager;
 import com.wychmod.model.LinkGroupDO;
 import com.wychmod.service.LinkGroupService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
@@ -13,6 +15,8 @@ import javax.annotation.Resource;
  * @author: wychmod
  * @date: 2025-08-11
  */
+@Service
+@Slf4j
 public class LinkGroupServiceImpl implements LinkGroupService {
 
     @Resource
