@@ -2,13 +2,16 @@ package com.wychmod.controller;
 
 
 import com.wychmod.controller.request.LinkGroupAddRequest;
+import com.wychmod.controller.request.LinkGroupUpdateRequest;
 import com.wychmod.enums.BizCodeEnum;
 import com.wychmod.service.LinkGroupService;
 import com.wychmod.utils.JsonData;
+import com.wychmod.vo.LinkGroupVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  *
@@ -52,6 +55,51 @@ public class LinkGroupController {
         return rows == 1 ? JsonData.buildSuccess():JsonData.buildResult(BizCodeEnum.GROUP_NOT_EXIST);
 
     }
+
+
+    /**
+     * 获取链接分组详情
+     * @param groupId 分组ID
+     * @return 返回分组详情信息
+     */
+    @GetMapping("detail/{group_id}")
+    public JsonData detail(@PathVariable("group_id") Long groupId){
+
+        LinkGroupVO linkGroupVO = linkGroupService.detail(groupId);
+        return JsonData.buildSuccess(linkGroupVO);
+
+    }
+
+
+    /**
+     * 获取所有链接分组列表
+     * @return 返回分组列表
+     */
+    @GetMapping("list")
+    public JsonData list(){
+
+        List<LinkGroupVO> list = linkGroupService.listAllGroup();
+
+        return JsonData.buildSuccess(list);
+
+    }
+
+
+    /**
+     * 更新链接分组信息
+     * @param request 分组更新请求参数
+     * @return 更新成功返回成功状态，更新失败返回业务异常码
+     */
+    @PutMapping("update")
+    public JsonData update(@RequestBody LinkGroupUpdateRequest request){
+
+        // 执行更新操作并获取影响行数
+        int rows = linkGroupService.updateById(request);
+        // 根据影响行数判断更新是否成功
+        return rows == 1 ? JsonData.buildSuccess():JsonData.buildResult(BizCodeEnum.GROUP_OPER_FAIL);
+
+    }
+
 
 
 }
