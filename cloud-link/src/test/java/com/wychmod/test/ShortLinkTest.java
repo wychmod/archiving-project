@@ -40,11 +40,6 @@ public class ShortLinkTest {
         }
 
     }
-
-
-    /**
-     * 测试短链平台
-     */
     @Test
     public void testCreateShortLink() {
 

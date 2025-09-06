@@ -1,5 +1,7 @@
 package com.wychmod.component;
 
+import com.wychmod.strategy.ShardingDBConfig;
+import com.wychmod.strategy.ShardingTableConfig;
 import com.wychmod.utils.CommonUtil;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +26,9 @@ public class ShortLinkComponent {
         long murmurhash = CommonUtil.murmurHash32(param);
         //进制转换
 
-        return encodeToBase62(murmurhash);
+        String code = encodeToBase62(murmurhash);
+
+        return ShardingDBConfig.getDBPrefix() + code + ShardingTableConfig.getRandomTableSuffix();
     }
 
     /**
