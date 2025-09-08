@@ -18,26 +18,27 @@ public class CustomDBPreciseShardingAlgorithm implements PreciseShardingAlgorith
      * 根据分片键值精确分片，选择对应的数据源
      *
      * @param availableTargetNames 可用的数据源名称集合
-     * @param preciseShardingValue 精确分片键值信息
+     * @param shardingValue 精确分片键值信息
      * @return 返回匹配的数据源名称
      */
     @Override
-    public String doSharding(Collection<String> availableTargetNames, PreciseShardingValue<String> preciseShardingValue) {
-        // 获取分片键值的首字符作为匹配前缀
-        String codePrefix = preciseShardingValue.getValue().substring(0, 1);
+    public String doSharding(Collection<String> availableTargetNames, PreciseShardingValue<String> shardingValue) {
 
-        // 遍历可用数据源，查找匹配项
-        for (String name : availableTargetNames) {
+        //获取短链码第一位，即库位
+        String codePrefix = shardingValue.getValue().substring(0, 1);
+
+        for (String targetName : availableTargetNames) {
             //获取库名的最后一位，真实配置的ds
-            String targetNameSuffix = name.substring(name.length() - 1);
+            String targetNameSuffix = targetName.substring(targetName.length() - 1);
 
             //如果一致则返回
             if (codePrefix.equals(targetNameSuffix)) {
-                return name;
+                return targetName;
             }
         }
 
         //抛异常
         throw new BizException(BizCodeEnum.DATABASE_NOT_FOUND);
+
     }
 }

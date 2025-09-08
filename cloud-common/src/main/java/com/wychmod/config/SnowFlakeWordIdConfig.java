@@ -33,7 +33,7 @@ public class SnowFlakeWordIdConfig {
             String workId = Math.abs(hostAddressIp.hashCode()) % 1024+"";
 
             // 将工作节点ID设置为系统属性，供SnowFlake算法使用
-            System.setProperty("workId",workId);
+            System.setProperty("workerId",workId);
 
             log.info("workId:{}",workId);
 

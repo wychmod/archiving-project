@@ -16,22 +16,23 @@ public class CustomTablePreciseShardingAlgorithm implements PreciseShardingAlgor
      * 根据分片键值进行精确分片计算，返回对应的目标表名
      *
      * @param availableTargetNames 可用的目标表名集合
-     * @param preciseShardingValue 精确分片键值对象，包含分片列名和分片值
+     * @param shardingValue 精确分片键值对象，包含分片列名和分片值
      * @return 计算后的目标表名，格式为"基础表名_分片值最后一位字符"
      */
     @Override
-    public String doSharding(Collection<String> availableTargetNames, PreciseShardingValue<String> preciseShardingValue) {
+    public String doSharding(Collection<String> availableTargetNames, PreciseShardingValue<String> shardingValue) {
 
-        // 获取可用目标表名中的第一个作为基础表名
+        //获取逻辑表
         String targetName = availableTargetNames.iterator().next();
 
-        // 获取分片键值
-        String value = preciseShardingValue.getValue();
-
-        // 提取分片值的最后一位字符作为后缀
-        String codeSuffix = value.substring(value.length() - 1);
+        //短链码  A23Ad1
+        String value = shardingValue.getValue();
 
 
+        //获取短链码最后一位
+        String codeSuffix =  value.substring(value.length()-1);
+
+        //拼接Actual table
         return targetName+"_"+codeSuffix;
     }
 }

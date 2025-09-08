@@ -1,7 +1,5 @@
 package com.wychmod.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +19,6 @@ public class ShortLinkDO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-//      @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -50,12 +47,12 @@ public class ShortLinkDO implements Serializable {
     private String code;
 
     /**
-     * 短链的md5码，便于查找
+     * 长链的md5码，方便查找
      */
     private String sign;
 
     /**
-     * 过期时间，永久就是-1
+     * 过期时间，长久就是-1
      */
     private Date expired;
 
@@ -85,9 +82,8 @@ public class ShortLinkDO implements Serializable {
     private String state;
 
     /**
-     * 链接产品层级：FIRST 免费铜牌、SECOND银牌、THIRD金牌
+     * 链接产品层级：FIRST 免费青铜、SECOND黄金、THIRD钻石
      */
     private String linkType;
-
 
 }
