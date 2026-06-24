@@ -40,6 +40,7 @@
 | 1802axf(爱先蜂) | [`archived-projects/1802axf/`](./archived-projects/1802axf) | Django 课设项目,O2O 闪送超市 Demo,含主页/闪送超市/购物车/我的四个主模块,支持登录注册、商品分类、购物车与下单 | Python · Django 1.11.4 · SQLite · jQuery · Bootstrap · Swiper | 已归档 |
 | wiki(知识库) | [`archived-projects/wiki/`](./archived-projects/wiki) | 全栈知识库/文档管理系统,Spring Boot + Vue 3 + Ant Design Vue,以「电子书→分类→文档」三层结构组织内容,支持富文本编辑、树形分类、文档点赞、WebSocket 实时通知、阅读量统计与定时快照 | Java 8 · Spring Boot 2.4 · MyBatis · MySQL 8 · Redis · WebSocket · PageHelper · Vue 3 · TypeScript · Ant Design Vue · wangEditor | 已归档 |
 | bolg(博客) | [`archived-projects/bolg/`](./archived-projects/bolg) | Flask 全栈博客练手项目,应用工厂模式,含注册激活、文章 CRUD、个人中心、收藏、搜索、分页与文件上传 | Python · Flask · Flask-Login · Flask-SQLAlchemy · Flask-Migrate · Flask-WTF · Jinja2 · SQLite | 已归档 |
+| Lottery(抽奖系统) | [`archived-projects/lottery/`](./archived-projects/lottery) | DDD 四层架构 + Spring Boot + Dubbo RPC + 自研分库分表中间件的完整抽奖系统,含抽奖策略/活动/奖品三大领域 + ID 生成器 + dbRouter 注解路由;配套 4 章笔记 + SQL + XMind + PPT + Excel 教学资料 | Java 8 · Spring Boot 2.3 · MyBatis · Dubbo 2.6 · ZooKeeper · MySQL · Redis · JSP | 已归档 |
 
 > 完整归档规范、提交规范与禁止动作见 [`AGENTS.md`](./AGENTS.md)。
 
@@ -57,7 +58,8 @@ archiving-project/
     ├── ToDoList/               # ARCHIVE.md · Django + React 待办事项
     ├── 1802axf/                # ARCHIVE.md · Django 课设 O2O 闪送超市
     ├── wiki/                   # ARCHIVE.md · Spring Boot + Vue 知识库
-    └── bolg/                   # ARCHIVE.md · Flask 全栈博客
+    ├── bolg/                   # ARCHIVE.md · Flask 全栈博客
+    └── lottery/                # ARCHIVE.md · DDD + Dubbo 抽奖系统
 ```
 
 ---
