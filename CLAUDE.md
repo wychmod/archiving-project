@@ -5,6 +5,8 @@
 > 通用规范见 [`AGENTS.md`](./AGENTS.md)。本文件**只补充** Claude 特有的部分,不要重复 AGENTS.md 已经规定的内容。
 >
 > 若本文件与 AGENTS.md 冲突,以 AGENTS.md 为准。
+>
+> **跨文档一致性**:本文件、`AGENTS.md`、`README.md` 三者共同构成仓库规范。修改其中任一份,必须同步检查并按需更新另外两份,详见 `AGENTS.md` §0。
 
 ---
 
@@ -47,23 +49,23 @@
 
 ### 4.1 用户说"帮我查一下 X 项目是干嘛的"
 
-1. 在 `archived-projects/` / `learning-projects/` / `experiments/` 中定位目录
-2. 优先读该子项目的 `README.md`
+1. 在 `archived-projects/<name>/` 中定位目录
+2. 优先读该子项目的 `ARCHIVE.md`,需要时再回看原始 `README.md`
 3. 找不到时再扫源码关键词
 4. 给出**一句话简介 + 技术栈 + 当前状态**,不展开源码细节
 
 ### 4.2 用户说"把这个仓库归档进来"
 
-1. 确认分类目录(`learning-projects/` / `archived-projects/` / `experiments/`)
+1. 确认目标目录:`archived-projects/<name>/`(本仓库只承担历史归档)
 2. 用 `git subtree add` 导入,保留原始提交历史
-3. 在子项目根目录新建 `README.md`,字段见 `AGENTS.md` §2.2
+3. 在子项目根目录新建 `ARCHIVE.md`,字段见 `AGENTS.md` §2.2
 4. 更新根 `README.md` 的项目清单
 5. 用 `archive: import <name> from <url>` 提交
 
 ### 4.3 用户说"在归档项目里改个 bug"
 
 - 默认拒绝,提醒用户这是只读快照
-- 若用户坚持:要求明确说明改动范围,在子项目 `README.md` 追加变更记录,不要升级依赖
+- 若用户坚持:要求明确说明改动范围,在子项目 `ARCHIVE.md` 追加变更记录,不要升级依赖
 
 ---
 

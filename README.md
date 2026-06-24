@@ -1,6 +1,6 @@
 # Archiving Project
 
-> A single source of truth for legacy learning projects, retired side projects, and short-lived experiments.
+> A single source of truth for retired side projects and historical learning archives.
 
 [![Status](https://img.shields.io/badge/status-archive-blueviolet.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](#)
@@ -48,12 +48,14 @@
 
 ```
 archiving-project/
-├── README.md              # 本文件,项目门面
-├── AGENTS.md              # 通用 AI Agent 操作规范
-├── CLAUDE.md              # Claude 偏好补充
-├── learning-projects/     # 学习类项目
-├── archived-projects/     # 历史归档项目
-└── experiments/           # 实验性 / Demo 项目
+├── README.md                   # 本文件,项目门面
+├── AGENTS.md                   # 通用 AI Agent 操作规范
+├── CLAUDE.md                   # Claude 偏好补充
+└── archived-projects/          # 历史归档项目
+    ├── ChatGPT-Next-Web/       # ARCHIVE.md · 跨平台 ChatGPT Web UI
+    ├── ToDoList/               # ARCHIVE.md · Django + React 待办事项
+    ├── 1802axf/                # ARCHIVE.md · Django 课设 O2O 闪送超市
+    └── wiki/                   # ARCHIVE.md · Spring Boot + Vue 知识库
 ```
 
 ---
@@ -62,17 +64,15 @@ archiving-project/
 
 | 分类 | 用途 |
 | --- | --- |
-| `learning-projects/` | 为学某门语言、框架、工具或课程而产生的项目 |
 | `archived-projects/` | 曾独立维护,现已不再迭代但值得保留历史记录的项目 |
-| `experiments/` | 临时想法、技术调研、Demo 或 PoC |
 
 ---
 
 ## 如何归档新项目
 
-1. 选择合适分类目录(`learning-projects/` / `archived-projects/` / `experiments/`)
+1. 将项目迁入 `archived-projects/<name>/`
 2. 使用 `git subtree add` 导入,保留原始提交历史
-3. 在子项目根目录新建 `README.md`,记录项目用途、技术栈、学习重点、当前状态与原始来源
+3. 在子项目根目录新建 `ARCHIVE.md`,记录项目用途、技术栈、学习重点、当前状态与原始来源
 4. 在本文件的「项目清单」表格追加一行
 5. 提交,建议使用 `archive: import <name> from <source-url>`
 
