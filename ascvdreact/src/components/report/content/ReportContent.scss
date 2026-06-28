@@ -1,0 +1,63 @@
+.report-content {
+  margin: 24px 0px;
+
+  .report-content-titles{
+    font-size: large;
+    text-align: center;
+    padding-bottom:5px;
+    border-bottom: 1.5px solid #0081EF;
+    line-height:45px
+  }
+
+  .report-content-title {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .report-content-table {
+    border-style: solid;
+
+    .ant-descriptions-item {
+      padding-bottom: 12px;
+    }
+
+    .ant-descriptions-item-label {
+      margin-left: 12px;
+    }
+  }
+
+  .report-content-table-title {
+    border-style: solid;
+    border-top-style: hidden;
+    text-align: center;
+
+    .ant-descriptions-item-content {
+      margin-left: 12px;
+    }
+
+    .ant-descriptions-item {
+      padding-bottom: 0px;
+    }
+  }
+
+  .report-content-table-main {
+    border-style: solid;
+    border-top-style: hidden;
+    text-align: center;
+    padding-left: 12px;
+
+    .ant-descriptions-item {
+      padding-bottom: 8px;
+    }
+  }
+}
+.reportcontent-pre{
+  margin-top: 24px;
+}
+.report-content-skeleton {
+  margin-top: 24px;
+}
+.step-two-button {
+  margin-right: 24px;
+  margin-bottom: 16px;
+}
