@@ -5,7 +5,7 @@
 > *集中即索引 · 保真优先 · 状态透明*
 
 ![Status](https://img.shields.io/badge/Status-Archive-blueviolet?style=for-the-badge)
-![Projects](https://img.shields.io/badge/Archived-9-orange?style=for-the-badge)
+![Projects](https://img.shields.io/badge/Archived-10-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Stack](https://img.shields.io/badge/Stack-Polyglot-ff69b4?style=for-the-badge)
 ![AI Agents](https://img.shields.io/badge/AI%20Agents-Ready-9cf?style=for-the-badge)
@@ -44,7 +44,7 @@
 
 | 特性 | 说明 |
 | --- | --- |
-| 🗂️ **9 个归档项目** | 横跨 7+ 个技术栈,涵盖 LLM 应用、全栈练手、企业中台、运维工具与医疗系统 |
+| 🗂️ **10 个归档项目** | 横跨 8+ 个技术栈,涵盖 LLM 应用、全栈练手、企业中台、桌面应用、运维工具与医疗系统 |
 | 📜 **保留原始历史** | 全部通过 `git subtree` 迁入,提交链可逐 commit 回溯 |
 | 🔐 **凭证已脱敏** | 涉及真实密钥 / Token 的项目在导入时已做安全处理(详见 [🔐 安全声明](#-安全声明)) |
 | 🤖 **AI Agent 友好** | 配套 [`AGENTS.md`](./AGENTS.md) + [`CLAUDE.md`](./CLAUDE.md),自动化工具有规可循 |
@@ -86,6 +86,7 @@
 | --- | --- | --- | --- |
 | [**huawei-alarm (华为云告警机器人)**](./archived-projects/huawei-alarm) | 华为云 AOM 告警 → 飞书机器人的 webhook 通知桥,FastAPI 接收 SMN 推送、解析告警 JSON、按 `chat_type` 分发到飞书群或私聊,支持 `interactive` / `text` 两种消息卡片模板 | `Python 3` · `FastAPI` · `SQLAlchemy` · `PostgreSQL` · `Pydantic` · `requests` · `飞书 OpenAPI` | 已归档(已脱敏) |
 | [**ascvd (心血管风险评估系统)**](./archived-projects/ascvd) | ASCVD 动脉粥样硬化性心血管疾病风险评估与报告系统,Django + DRF + MySQL 后端,React + MobX + Ant Design + React Flow 前端,7 个 Apps 涵盖患者档案 / 血脂亚组分 / 基因多态性 / 疾病字典等 | `Python 3.8` · `Django 4.1` · `DRF 3.13` · `MySQL 8` · `React 18` · `MobX 6` · `Ant Design 4` · `React Flow 11` · `TyAdmin` · `uWSGI` | 已归档(已脱敏 + README 升级) |
+| [**ESContentGen**](./archived-projects/ESContentGen) | 基于 Electron 的桌面应用骨架,主进程 / 渲染进程 / preload 三段式架构 + IPC 双向通道,electron-builder 全平台打包配置(Win NSIS / macOS DMG / Linux AppImage & deb),脚手架阶段业务逻辑尚未展开 | `Electron 35` · `Node.js` · `electron-builder` · `cross-env` · 原生 `HTML` / `CSS` / `JS` | 已归档 |
 
 > 完整归档规范、提交规范与禁止动作见 [`AGENTS.md`](./AGENTS.md)。
 
@@ -102,6 +103,7 @@
 | 🐍 **Python** | 5 | ToDoList · 1802axf · bolg · huawei-alarm · ascvd |
 | ☕ **Java** | 4 | wiki · Lottery · cloud-short-link · (ChatGPT-Next-Web 的 Next.js 后端 API 路由) |
 | 🌐 **TypeScript / JavaScript** | 5 | ChatGPT-Next-Web · ToDoList(前端) · wiki(前端) · ascvd(前端) · cloud-short-link(网关) |
+| 🟢 **Node.js / Electron** | 1 | ESContentGen |
 
 ### 按前端栈
 
@@ -122,6 +124,7 @@
 | ☁️ **微服务 / Spring Cloud Alibaba** | 1 | cloud-short-link |
 | ⚡ **Serverless / Webhook 桥** | 1 | huawei-alarm |
 | 📦 **SPA + REST** | 2 | ascvd · ChatGPT-Next-Web |
+| 🖥️ **桌面应用 (Electron)** | 1 | ESContentGen |
 
 ---
 
@@ -130,6 +133,7 @@
 > 按 `git log` 中 `archive:` 前缀的提交顺序倒序排列,作为仓库成长史的一瞥。
 
 ```
+2026-06-28  ┃  ★ ESContentGen         (Electron 桌面应用骨架)
 2026-06-28  ┃  ★ cloud-short-link     (Spring Cloud Alibaba 云短链)
 2026-06-28  ┃  ★ ascvd                (心血管风险评估 · 已脱敏)
 2026-06-28  ┃  ★ huawei-alarm         (华为云告警 → 飞书 · 已脱敏)
@@ -159,7 +163,8 @@ archiving-project/
     ├── lottery/                       # ARCHIVE.md · DDD + Dubbo 抽奖系统
     ├── huawei-alarm/                  # ARCHIVE.md · FastAPI 华为云告警 → 飞书(已脱敏)
     ├── ascvd/                         # ARCHIVE.md · Django + React 心血管风险评估(已脱敏)
-    └── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
+    ├── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
+    └── ESContentGen/                  # ARCHIVE.md · Electron 桌面应用骨架
 ```
 
 ---
