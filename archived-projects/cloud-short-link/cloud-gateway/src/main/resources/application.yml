@@ -1,0 +1,16 @@
+server:
+  port: 8888
+
+
+#应用名称
+spring:
+  application:
+    name: cloud-gateway
+
+#服务注册发现
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 117.72.218.181:8848
+        username: nacos
+        password: <YOUR_NACOS_PASSWORD>

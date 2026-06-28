@@ -1,0 +1,64 @@
+server:
+  port: 8001
+
+
+#应用名称
+spring:
+  application:
+    name: cloud-account
+
+  devtools:
+    restart:
+      enabled: true
+
+#服务注册发现
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 117.72.218.181:8848
+        username: nacos
+        password: <YOUR_NACOS_PASSWORD>
+
+#数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://117.72.218.181:3306/cloud_account?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: <YOUR_DB_PASSWORD>
+
+  redis:
+    client-type: jedis
+    host: 117.72.218.181
+    password: <YOUR_REDIS_PASSWORD>
+    port: 6379
+    jedis:
+      pool:
+        # 连接池最大连接数（使用负值表示没有限制）
+        max-active: 100
+        # 连接池中的最大空闲连接
+        max-idle: 50
+        # 连接池中的最小空闲连接
+        min-idle: 50
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: 60000
+
+
+
+#配置plus打印sql日志
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+
+# 短信配置
+sms:
+  app-code: <YOUR_SMS_APP_CODE>
+  template-id: CST_ptdie100
+
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    #阿里云id
+    access-key-secret: <YOUR_ALIYUN_OSS_ACCESS_KEY_SECRET>
+    bucket-name: wychmod-link
