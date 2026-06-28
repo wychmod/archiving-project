@@ -1,12 +1,8 @@
-<div align="center">
-
 # 🗄️ Archiving Project
 
-**A curated archive of personal side projects, learning experiments, and retired codebases.**
-
-*集中即索引 · 保真优先 · 状态透明*
-
-<br/>
+> **A curated archive of personal side projects, learning experiments, and retired codebases.**
+>
+> *集中即索引 · 保真优先 · 状态透明*
 
 ![Status](https://img.shields.io/badge/Status-Archive-blueviolet?style=for-the-badge)
 ![Projects](https://img.shields.io/badge/Archived-9-orange?style=for-the-badge)
@@ -16,14 +12,10 @@
 ![Maintained](https://img.shields.io/badge/Maintained-Yes-success?style=for-the-badge)
 ![Built With](https://img.shields.io/badge/Built%20With-Markdown%20%2B%20Git-181717?style=for-the-badge&logo=github&logoColor=white)
 
-<br/>
-
 > 一个集中沉淀个人 GitHub 历史学习项目、练手项目和不再单独维护旧项目的归档仓库。
 > 每一份归档都能回答三个问题:**它是什么 · 为什么保留 · 现在还活着吗**。
 
-[📦 项目清单](#-项目清单) · [📊 技术栈分布](#-技术栈分布) · [🕒 归档时间线](#-归档时间线) · [📥 归档工作流](#-归档工作流) · [🤖 面向 AI Agent](#-面向-ai-agent)
-
-</div>
+**快速跳转** · [📦 项目清单](#-项目清单) · [📊 技术栈分布](#-技术栈分布) · [🕒 归档时间线](#-归档时间线) · [📥 归档工作流](#-归档工作流) · [🤖 面向 AI Agent](#-面向-ai-agent)
 
 ---
 
@@ -180,11 +172,11 @@ archiving-project/
 
 ```mermaid
 flowchart LR
-    A[源仓库<br/>wychmod/*] --> B[git subtree add<br/>保留历史]
-    B --> C[创建 ARCHIVE.md<br/>标准化字段]
-    C --> D[更新根 README<br/>项目清单]
-    D --> E[git commit<br/>archive: import ...]
-    E --> F[git push<br/>触发归档]
+    A["源仓库 wychmod/*"] --> B["git subtree add\n保留历史"]
+    B --> C["创建 ARCHIVE.md\n标准化字段"]
+    C --> D["更新根 README\n项目清单"]
+    D --> E["git commit\narchive: import ..."]
+    E --> F["git push\n触发归档"]
 ```
 
 ### 五步走
@@ -265,10 +257,6 @@ copies or substantial portions of the Software.
 
 ---
 
-<div align="center">
-
 **🗄️ Archiving Project** · *A single source of truth for code that shaped the way I build.*
 
-<sub>Built with Markdown + Git · Designed for humans and AI agents alike · Maintained by [wychmod](https://github.com/wychmod)</sub>
-
-</div>
+*Built with Markdown + Git · Designed for humans and AI agents alike · Maintained by [@wychmod](https://github.com/wychmod)*
