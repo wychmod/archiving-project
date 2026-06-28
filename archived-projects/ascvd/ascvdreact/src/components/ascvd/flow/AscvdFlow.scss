@@ -1,0 +1,38 @@
+
+.ascvd-flow {
+  height: 1150px;
+  width: 1195px;
+  .ascvd-flow-name {
+    background-color: #8ecafe;
+  }
+
+  .ascvd-flow-base {
+    color: #f7f7f7;
+    font-weight: bold;
+    width: auto;
+    font-size: 14px;
+  }
+
+  .ascvd-flow-reduce {
+    color: #f7f7f7;
+    font-weight: bold;
+    width: 140px;
+    font-size: 14px;
+  }
+
+  .ascvd-flow-no-selected {
+    background-color: #52c41a;
+  }
+  .ascvd-flow-selected {
+    background-color: #d9363e;
+  }
+}
+
+.ascvd-main {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  width: 100%;
+  .ascvd-main-img {
+    width: 100%;
+  }
+}
