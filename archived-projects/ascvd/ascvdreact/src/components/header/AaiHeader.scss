@@ -1,0 +1,41 @@
+.ascvd-header {
+  left: 0;
+  top: 0;
+  width: 100% !important;
+  height: 316px !important;
+  background: url("../../assets/ascvd-banner.jpg") no-repeat center !important;
+
+  .ascvd-overlay {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 316px !important;
+    background: url(../../assets/blue-overlay.png) repeat !important;
+  }
+
+  .ascvd-title {
+    position: relative;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+
+    .ascvd-title-h1 {
+      color: #fff;
+      padding: 110px 0 0;
+      margin-bottom: 0;
+      text-align: center;
+      font-size: 42px;
+      font-weight: 700;
+    }
+
+    .ascvd-title-p {
+      font-size: 16px;
+      color: #fff;
+      margin-top: -25px;
+      text-align: center;
+      font-weight: 500;
+    }
+  }
+}
