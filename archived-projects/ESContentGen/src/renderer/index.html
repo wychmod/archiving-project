@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+  <title>ESContentGen</title>
+  <link rel="stylesheet" href="./styles/index.css">
+</head>
+<body>
+  <div class="container">
+    <h1>ESContentGen</h1>
+    <p>欢迎使用ESContentGen应用程序</p>
+    
+    <div class="info">
+      <p>我们正在使用 Node.js <span id="node-version"></span>,
+      Chromium <span id="chrome-version"></span>,
+      和 Electron <span id="electron-version"></span>.</p>
+    </div>
+    
+    <div class="content">
+      <!-- 这里是应用的主要内容区域 -->
+      <div class="card">
+        <h2>开始使用</h2>
+        <p>这是一个基于Electron的内容生成应用。</p>
+        <button id="start-btn">开始使用</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="./scripts/renderer.js"></script>
+</body>
+</html>
