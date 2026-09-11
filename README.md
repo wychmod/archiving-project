@@ -18,6 +18,16 @@
 
 </div>
 
+> [!WARNING]
+> **本项目已归档，不再维护（Archived · 2026-09）**
+>
+> TokenBridge 已停止开发，仓库仅作为历史快照保留，不再接受功能开发、问题修复与安全更新。文档内容以下方原始介绍为准，但请注意相关功能与依赖可能已随时间失效。
+>
+> **替代方案：**
+>
+> - **接入 / 切换大模型 API**：推荐使用 [CC Switch](https://github.com/farion1231/cc-switch)（官网即 GitHub 仓库，发布下载见 [Releases](https://github.com/farion1231/cc-switch/releases)）。它是一款开源跨平台（Windows / macOS / Linux）桌面工具，支持 Claude Code、Codex、Gemini CLI 等主流 AI 编程工具的供应商一键切换、MCP 管理、本地代理与故障转移。
+> - **本地 Token / 用量统计**：推荐使用 [TokenTracker](https://www.tokentracker.cc)（开源仓库 [xiufengsun/TokenTracker](https://github.com/xiufengsun/TokenTracker)）。本地优先的 AI 编程 Token 用量与成本统计工具，支持 Claude Code、Codex、Cursor、Gemini 等 36 种工具，提供 Dashboard、桌面宠物、小组件与原生 macOS / Windows 应用。
+
 ---
 
 ## 项目简介
@@ -551,7 +561,9 @@ wails build -platform darwin/universal  # macOS 桌面版
 - 非必要不要将服务绑定到公网地址；如需外部访问，请放在可信反向代理或内网策略之后。
 - 开启 CORS 时显式配置 `allowed_origins`，避免宽泛开放。
 
-## Roadmap
+## Roadmap（已冻结）
+
+> 项目已归档，以下计划不再实施，仅作历史记录。
 
 - 更完整的主动 Provider 健康探测与定时巡检。
 - 更严格的 `routing.fallback.retry_on` 策略执行。
@@ -562,7 +574,7 @@ wails build -platform darwin/universal  # macOS 桌面版
 
 ## 贡献规范
 
-欢迎提交 Issue 和 Pull Request。建议保持改动边界清晰、可验证、可回滚。
+> 项目已归档，不再接受新的 Issue 和 Pull Request。以下规范保留作为历史参考。
 
 1. Fork 仓库。
 2. 创建功能分支：
