@@ -58,9 +58,10 @@
 
 1. 确认目标目录:`archived-projects/<name>/`(本仓库只承担历史归档)
 2. 用 `git subtree add` 导入,保留原始提交历史
-3. 在子项目根目录新建 `ARCHIVE.md`,字段见 `AGENTS.md` §2.2
-4. 更新根 `README.md` 的项目清单
-5. 用 `archive: import <name> from <url>` 提交
+3. 归档前清理:剔除 venv / node_modules / 构建产物 / `__pycache__` / `.idea` / 本地数据库等禁止入库文件(清单见 `AGENTS.md` §3.1),确认或补充子项目 `.gitignore`
+4. 在子项目根目录新建 `ARCHIVE.md`,字段见 `AGENTS.md` §2.2
+5. 更新根 `README.md` 的项目清单
+6. 用 `archive: import <name> from <url>` 提交
 
 ### 4.3 用户说"在归档项目里改个 bug"
 
@@ -81,5 +82,5 @@
 
 - ❌ 在没有 owner 明确授权时修改归档项目源码
 - ❌ 跨子目录批量重构
-- ❌ 删除或重写历史 commit
+- ❌ 未经 owner 明确授权重写历史 commit(备份与流程要求见 `AGENTS.md` §5)
 - ❌ 把多个 agent 的特殊指令混在本文件中(只写 Claude 相关的)

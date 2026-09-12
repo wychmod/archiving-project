@@ -48,7 +48,7 @@
 | 📜 **保留原始历史** | 全部通过 `git subtree` 迁入,提交链可逐 commit 回溯 |
 | 🔐 **凭证已脱敏** | 涉及真实密钥 / Token 的项目在导入时已做安全处理(详见 [🔐 安全声明](#-安全声明)) |
 | 🤖 **AI Agent 友好** | 配套 [`AGENTS.md`](./AGENTS.md) + [`CLAUDE.md`](./CLAUDE.md),自动化工具有规可循 |
-| 📐 **统一元数据** | 每个子项目都有 `ARCHIVE.md`,字段标准化,可被脚本批量解析 |
+| 📐 **统一元数据** | 每个子项目都有 `ARCHIVE.md`,字段标准化,可被脚本批量解析;并配有 `.gitignore` 防止虚拟环境 / 构建产物再次入库 |
 | 🪶 **零构建依赖** | 纯 Markdown + 源代码快照,无需任何 CI / build 工具链即可阅读 |
 | 🌍 **跨文档一致** | `README.md` / `AGENTS.md` / `CLAUDE.md` 三者职责分明、联动可追溯 |
 
@@ -178,21 +178,23 @@ archiving-project/
 ```mermaid
 flowchart LR
     A["源仓库 wychmod/*"] --> B["git subtree add\n保留历史"]
-    B --> C["创建 ARCHIVE.md\n标准化字段"]
+    B --> B2["归档前清理\nvenv/构建产物/pyc/IDE 配置"]
+    B2 --> C["创建 ARCHIVE.md\n标准化字段"]
     C --> D["更新根 README\n项目清单"]
     D --> E["git commit\narchive: import ..."]
     E --> F["git push\n触发归档"]
 ```
 
-### 五步走
+### 六步走
 
 | 步骤 | 动作 | 关键点 |
 | :---: | --- | --- |
 | **1** | **确认分类** | 目标目录固定为 `archived-projects/<name>/`,本仓库只承担历史项目归档职责 |
 | **2** | **拉取代码** | 使用 `git subtree add`,**保留原始 commit 历史**;不要 `clone + 复制粘贴` |
-| **3** | **写 `ARCHIVE.md`** | 在子项目根目录新建,字段参考 `AGENTS.md` §2.2(名称 / 简介 / 技术栈 / 学习重点 / 状态 / 来源) |
-| **4** | **更新根 README** | 在「项目清单」表格中追加一行,并按场景分组;若涉及真实凭证,在简介中显式标注「已脱敏」 |
-| **5** | **提交并推送** | commit message 遵循 Conventional Commits:`archive: import <project-name> from <source-url>` |
+| **3** | **归档前清理** | 剔除 venv / node_modules / 构建产物 / `__pycache__` / `.idea` / 本地数据库等禁止入库文件,确认子项目 `.gitignore`(清单见 [`AGENTS.md`](./AGENTS.md) §3.1) |
+| **4** | **写 `ARCHIVE.md`** | 在子项目根目录新建,字段参考 `AGENTS.md` §2.2(名称 / 简介 / 技术栈 / 学习重点 / 状态 / 来源) |
+| **5** | **更新根 README** | 在「项目清单」表格中追加一行,并按场景分组;若涉及真实凭证,在简介中显式标注「已脱敏」 |
+| **6** | **提交并推送** | commit message 遵循 Conventional Commits:`archive: import <project-name> from <source-url>` |
 
 ---
 

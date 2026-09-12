@@ -65,6 +65,8 @@ archiving-project/
 - 当前状态(已归档 / 可运行 / 仅源码 / 待整理)
 - 原始来源仓库 URL 与导入时间
 
+每个子项目目录同时**必须**包含一个 `.gitignore`,至少覆盖 §3.1 所列的禁止入库类别。
+
 ---
 
 ## 3. 工作流
@@ -75,9 +77,18 @@ archiving-project/
 
 1. **确认分类**:目标目录固定为 `archived-projects/<name>/`(本仓库只承担历史项目归档职责)
 2. **拉取代码**:使用 `git subtree add` 或 `git remote add` + `git pull`,保留原始 commit 历史
-3. **写入项目 ARCHIVE**:在子项目根目录新建 `ARCHIVE.md`,字段参考 §2.2
-4. **更新根 README 的项目清单**:在 `README.md` 的清单表中追加一行
-5. **提交**:commit message 建议使用 `archive: import <project-name> from <source-url>`
+3. **归档前清理**:剔除下方所列的禁止入库文件,并确认或补充子项目 `.gitignore`。注意:subtree 导入的 squash 提交会原样携带源仓库根目录内容,若源仓库本身已提交这些文件,需先在源仓库清理后重新导入,或在导入后经 owner 授权用 `git filter-repo` 清除(见 §5)
+4. **写入项目 ARCHIVE**:在子项目根目录新建 `ARCHIVE.md`,字段参考 §2.2
+5. **更新根 README 的项目清单**:在 `README.md` 的清单表中追加一行
+6. **提交**:commit message 建议使用 `archive: import <project-name> from <source-url>`
+
+> **禁止入库的文件类别**(清理对象,本地保留即可):
+>
+> - 虚拟环境 / 依赖目录:`venv/`、`node_modules/`
+> - 构建产物:`build/`、`dist/`、webpack bundle 产物、Django `collectstatic` 输出(如 `static/admin/`)
+> - Python 缓存:`__pycache__/`、`*.pyc`
+> - IDE / 编辑器配置:`.idea/`、`.vscode/`
+> - 本地数据库文件:`*.sqlite`、`*.sqlite3`
 
 ### 3.2 检索与查询
 
@@ -111,7 +122,7 @@ archiving-project/
 
 ## 5. 禁止动作清单
 
-- ❌ 运行 `git filter-repo` / `git filter-branch` 改写历史
+- ❌ 未经 owner 明确授权运行 `git filter-repo` / `git filter-branch` 改写历史;授权执行前必须先做 `git bundle` 全量备份(2026-09-13 已在授权下完成一次全库清理:清除 venv / 构建产物 / collectstatic / bundle.js / `.pyc` / `.idea` / sqlite,pack 体积 23.0 MiB → 11.8 MiB)
 - ❌ 删除归档项目目录
 - ❌ 在根目录直接放源代码,绕过分类目录
 - ❌ 不更新根 README 就提交新项目
