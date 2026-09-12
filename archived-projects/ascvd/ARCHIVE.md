@@ -179,11 +179,11 @@ ascvd/
 | 文件 | 字段 | 原值 | 占位符 |
 | --- | --- | --- | --- |
 | `AscvdBackend/settings.py` | `SECRET_KEY` | `django-insecure-mqi6@v1n-...` | `<YOUR_DJANGO_SECRET_KEY>` |
-| `AscvdBackend/settings.py` | `DATABASES.PASSWORD` | `<YOUR_DB_PASSWORD>` | `<YOUR_DB_PASSWORD>` |
-| `服务器配置.md` | SSH 密码 \| <REDACTED> \| `<YOUR_SSH_PASSWORD>` |
-| `服务器配置.md` | 宝塔面板 username | `<REDACTED-BAOTA-USER>` | `<YOUR_BAOTA_USER>` |
-| `服务器配置.md` | 宝塔面板 password | `<REDACTED-BAOTA-PASSWORD>` | `<YOUR_BAOTA_PASSWORD>` |
-| `服务器配置.md` | MySQL root 密码 | `<YOUR_DB_PASSWORD>` | `<YOUR_MYSQL_ROOT_PASSWORD>` |
+| `AscvdBackend/settings.py` | `DATABASES.PASSWORD` | *(已抹除,视为已泄漏)* | `<YOUR_DB_PASSWORD>` |
+| `服务器配置.md` | SSH 密码 | *(已抹除,视为已泄漏)* | `<YOUR_SSH_PASSWORD>` |
+| `服务器配置.md` | 宝塔面板 username | *(已抹除,视为已泄漏)* | `<YOUR_BAOTA_USER>` |
+| `服务器配置.md` | 宝塔面板 password | *(已抹除,视为已泄漏)* | `<YOUR_BAOTA_PASSWORD>` |
+| `服务器配置.md` | MySQL root 密码 | *(已抹除,视为已泄漏)* | `<YOUR_MYSQL_ROOT_PASSWORD>` |
 | `服务器配置.md` | Django admin 密码 | `admin` | `<YOUR_DJANGO_ADMIN_PASSWORD>` |
 
 **变更方法**:在临时克隆里改 → 独立 commit(`a0c716a`)→ `git subtree add` 拉这个脱敏后的 HEAD,因此归档仓库 history 中**不含**任何真凭证。
@@ -193,9 +193,9 @@ ascvd/
 - owner 已被告知,需在源仓库侧做对应处理(轮换/删除等)
 
 **owner 应立即在源仓库侧处理**(紧急程度由高到低):
-1. **SSH 密码 <REDACTED>** —— 立即修改服务器 SSH 密码(`passwd root` 或新建密钥对)
-2. **宝塔面板 `<REDACTED-BAOTA-USER> / <REDACTED-BAOTA-PASSWORD>`** —— 立即在宝塔面板修改账户密码 + 启用 IP 白名单
-3. **MySQL root `<YOUR_DB_PASSWORD>`** —— 立即修改 MySQL root 密码,授权范围限定 `localhost`
+1. **SSH 密码** —— 立即修改服务器 SSH 密码(`passwd root` 或新建密钥对)(原值已抹除)
+2. **宝塔面板凭证** —— 立即在宝塔面板修改账户密码 + 启用 IP 白名单(原值已抹除)
+3. **MySQL root 密码** —— 立即修改 MySQL root 密码,授权范围限定 `localhost`(原值已抹除)
 4. **Django admin `admin / admin`** —— 立即修改 Django 超级管理员密码(若该服务仍在运行)
 5. **Django `SECRET_KEY`** —— 立即在生产 settings 中重新生成 `SECRET_KEY`(可用 `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` 生成),并启用 `DEBUG = False`
 6. **如要本地运行本项目**:在 `settings.py` 与 `服务器配置.md` 中按需填入真实凭证后再启动

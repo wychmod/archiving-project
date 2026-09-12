@@ -195,24 +195,24 @@ cloud-short-link/
 | 文件 | 字段 | 原值 | 占位符 |
 | --- | --- | --- | --- |
 | `cloud-account/application.yml` | Nacos password | `nacos`(默认) | `<YOUR_NACOS_PASSWORD>` |
-| `cloud-account/application.yml` | MySQL `root` 密码 | `<YOUR_DB_PASSWORD>` | `<YOUR_DB_PASSWORD>` |
-| `cloud-account/application.yml` | Redis 密码 | `<YOUR_DB_PASSWORD>` | `<YOUR_REDIS_PASSWORD>` |
-| `cloud-account/application.yml` | SMS app-code | `<REDACTED-SMS-APP-CODE>` | `<YOUR_SMS_APP_CODE>` |
-| `cloud-account/application.yml` | **Aliyun OSS access-key-secret** | `<REDACTED-OSS-SECRET>` | `<YOUR_ALIYUN_OSS_ACCESS_KEY_SECRET>` |
+| `cloud-account/application.yml` | MySQL `root` 密码 | *(已抹除,视为已泄漏)* | `<YOUR_DB_PASSWORD>` |
+| `cloud-account/application.yml` | Redis 密码 | *(已抹除,视为已泄漏)* | `<YOUR_REDIS_PASSWORD>` |
+| `cloud-account/application.yml` | SMS app-code | *(已抹除,视为已泄漏)* | `<YOUR_SMS_APP_CODE>` |
+| `cloud-account/application.yml` | **Aliyun OSS access-key-secret** | *(已抹除,视为已泄漏)* | `<YOUR_ALIYUN_OSS_ACCESS_KEY_SECRET>` |
 | `cloud-shop/application.yml` | Nacos password | `nacos` | `<YOUR_NACOS_PASSWORD>` |
 | `cloud-link/application.yml` | Nacos password | `nacos` | `<YOUR_NACOS_PASSWORD>` |
 | `cloud-data/application.yml` | Nacos password | `nacos` | `<YOUR_NACOS_PASSWORD>` |
 | `cloud-gateway/application.yml` | Nacos password | `nacos` | `<YOUR_NACOS_PASSWORD>` |
 
-**变更方法**:在临时克隆里改 → 独立 commit(`1253044`)→ `git subtree add` 拉这个脱敏后的 HEAD,因此归档仓库 history 中**不含**任何真凭证。
+**变更方法**:2026-09-13 全历史重导入时以 `git filter-repo --replace-text` 对 44 个提交统一脱敏;原值仅在 2026-06-28 的脱敏操作现场出现,未在本仓库文档中保留。
 
 ### ⚠️ owner 紧急程度(高危 → 低危)
 
 | # | 凭证 | 紧急度 | 建议 |
 | --- | --- | --- | --- |
 | 1 | **Aliyun OSS access-key-secret** | 🔴 **立即** | 到阿里云 RAM 控制台**禁用**该 AccessKey,然后重新生成。泄漏 = 任何人都能读写 `wychmod-link` bucket |
-| 2 | MySQL `root/<YOUR_DB_PASSWORD>` | 🔴 **立即** | 改 MySQL 密码,授权限 `localhost` 或内网段;关闭公网 3306 |
-| 3 | Redis `<YOUR_REDIS_HOST>:6379 <YOUR_DB_PASSWORD>` | 🔴 **立即** | 同上,改密码 + 限制内网访问 |
+| 2 | MySQL root 密码 | 🔴 **立即** | 改 MySQL 密码,授权限 `localhost` 或内网段;关闭公网 3306(原值已抹除) |
+| 3 | Redis 公网地址与密码 | 🔴 **立即** | 同上,改密码 + 限制内网访问(原值已抹除) |
 | 4 | Nacos `nacos/nacos` 默认 | 🟠 高 | 改 Nacos 鉴权 + 不暴露公网(8848 端口扫描重灾区) |
 | 5 | SMS app-code | 🟡 中 | 阿里云短信控制台重置 app-code |
 

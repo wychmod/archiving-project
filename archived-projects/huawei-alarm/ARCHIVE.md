@@ -120,7 +120,7 @@ README 文档完整覆盖了华为云侧的告警规则 / 行动规则 / 主题�
 
 > **原仓库 `f1fb6f2` 的真实凭证仍保留在源仓库 history 中**,本归档仓库的 history 已经过脱敏(临时克隆里改占位符后 commit,再以新 HEAD 做 subtree add),但源仓库侧需要 owner 自行处理:
 
-1. 飞书开放平台后台**轮换**该 `app_id` 对应的 `app_secret`(原 `<REDACTED-LARK-APP-SECRET>` 视为已泄漏,作废)
-2. 检查并更换 PostgreSQL 实例上同密码账户的密码(原 <REDACTED> 视为已泄漏)
+1. 飞书开放平台后台**轮换**该 `app_id` 对应的 `app_secret`(原值已抹除,视为已泄漏,作废)
+2. 检查并更换 PostgreSQL 实例上同密码账户的密码(原值已抹除,视为已泄漏)
 3. 如果计划把本归档项目作为参考运行,先在两份 INI 中填入真实凭证再启动
 4. `config-prod.ini` 当前内容与 `config-dev.ini` 完全一致(都已是占位符版本),按生产规范应该是不同的实际凭证
