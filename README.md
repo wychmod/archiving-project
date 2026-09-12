@@ -62,31 +62,31 @@
 
 | 项目 | 简介 | 技术栈 | 状态 |
 | --- | --- | --- | --- |
-| [**ChatGPT-Next-Web**](./archived-projects/ChatGPT-Next-Web) | 跨平台私人 ChatGPT Web UI,支持一键部署、PWA、桌面客户端、本地会话存储和多语言界面 | `Next.js` · `React` · `TypeScript` · `Sass` · `Zustand` · `Tauri` · `Docker` · `Vercel` | 已归档 |
+| [**ChatGPT-Next-Web**](./archived-projects/ChatGPT-Next-Web/README.md) | 跨平台私人 ChatGPT Web UI,支持一键部署、PWA、桌面客户端、本地会话存储和多语言界面 | `Next.js` · `React` · `TypeScript` · `Sass` · `Zustand` · `Tauri` · `Docker` · `Vercel` | 已归档 |
 
 ### 🟩 全栈练手
 
 | 项目 | 简介 | 技术栈 | 状态 |
 | --- | --- | --- | --- |
-| [**ToDoList**](./archived-projects/ToDoList) | 待办事项全栈练习项目,Django + React,支持 CRUD、优先级、到期时间与排序 | `Python` · `Django` · `DRF` · `React` · `React Bootstrap` · `Webpack` | 已归档 |
-| [**1802axf (爱先蜂)**](./archived-projects/1802axf) | Django 课设项目,O2O 闪送超市 Demo,含主页 / 闪送超市 / 购物车 / 我的四大模块,支持登录注册、商品分类、购物车与下单 | `Python` · `Django 1.11.4` · `SQLite` · `jQuery` · `Bootstrap` · `Swiper` | 已归档 |
-| [**bolg (博客)**](./archived-projects/bolg) | Flask 全栈博客练手项目,应用工厂模式,含注册激活、文章 CRUD、个人中心、收藏、搜索、分页与文件上传 | `Python` · `Flask` · `Flask-Login` · `Flask-SQLAlchemy` · `Flask-Migrate` · `Flask-WTF` · `Jinja2` · `SQLite` | 已归档 |
+| [**ToDoList**](./archived-projects/ToDoList/README.md) | 待办事项全栈练习项目,Django + React,支持 CRUD、优先级、到期时间与排序 | `Python` · `Django` · `DRF` · `React` · `React Bootstrap` · `Webpack` | 已归档 |
+| [**1802axf (爱先蜂)**](./archived-projects/1802axf/README.md) | Django 课设项目,O2O 闪送超市 Demo,含主页 / 闪送超市 / 购物车 / 我的四大模块,支持登录注册、商品分类、购物车与下单 | `Python` · `Django 1.11.4` · `SQLite` · `jQuery` · `Bootstrap` · `Swiper` | 已归档 |
+| [**bolg (博客)**](./archived-projects/bolg/README.md) | Flask 全栈博客练手项目,应用工厂模式,含注册激活、文章 CRUD、个人中心、收藏、搜索、分页与文件上传 | `Python` · `Flask` · `Flask-Login` · `Flask-SQLAlchemy` · `Flask-Migrate` · `Flask-WTF` · `Jinja2` · `SQLite` | 已归档 |
 
 ### 🟨 企业级 / 中台架构
 
 | 项目 | 简介 | 技术栈 | 状态 |
 | --- | --- | --- | --- |
-| [**wiki (知识库)**](./archived-projects/wiki) | 全栈知识库 / 文档管理系统,Spring Boot + Vue 3 + Ant Design Vue,以「电子书 → 分类 → 文档」三层结构组织内容,支持富文本编辑、树形分类、文档点赞、WebSocket 实时通知、阅读量统计与定时快照 | `Java 8` · `Spring Boot 2.4` · `MyBatis` · `MySQL 8` · `Redis` · `WebSocket` · `PageHelper` · `Vue 3` · `TypeScript` · `Ant Design Vue` · `wangEditor` | 已归档 |
-| [**Lottery (抽奖系统)**](./archived-projects/lottery) | DDD 四层架构 + Spring Boot + Dubbo RPC + 自研分库分表中间件的完整抽奖系统,含抽奖策略 / 活动 / 奖品三大领域 + ID 生成器 + `dbRouter` 注解路由;配套 4 章笔记 + SQL + XMind + PPT + Excel 教学资料 | `Java 8` · `Spring Boot 2.3` · `MyBatis` · `Dubbo 2.6` · `ZooKeeper` · `MySQL` · `Redis` · `JSP` | 已归档 |
-| [**cloud-short-link (云短链接)**](./archived-projects/cloud-short-link) | 基于 Spring Cloud Alibaba 的云原生短链生成与管理系统,8 个 Maven 模块(`account` / `link` / `data` / `gateway` / `shop` / `app` / `common` / `short-link`),MurmurHash32 + Base62 + Sharding-JDBC 自研分库分表策略,JWT 鉴权 + 阿里云 OSS / 短信 + Redisson 分布式锁 + XXL-Job | `Java 11` · `Spring Boot 2.5` · `Spring Cloud 2020` · `Spring Cloud Alibaba 2021` · `Nacos` · `MyBatis Plus` · `Sharding-JDBC` · `JWT` · `Redisson` · `XXL-Job` · `阿里云 OSS` | 已归档 |
+| [**wiki (知识库)**](./archived-projects/wiki/README.md) | 全栈知识库 / 文档管理系统,Spring Boot + Vue 3 + Ant Design Vue,以「电子书 → 分类 → 文档」三层结构组织内容,支持富文本编辑、树形分类、文档点赞、WebSocket 实时通知、阅读量统计与定时快照 | `Java 8` · `Spring Boot 2.4` · `MyBatis` · `MySQL 8` · `Redis` · `WebSocket` · `PageHelper` · `Vue 3` · `TypeScript` · `Ant Design Vue` · `wangEditor` | 已归档 |
+| [**Lottery (抽奖系统)**](./archived-projects/lottery/README.md) | DDD 四层架构 + Spring Boot + Dubbo RPC + 自研分库分表中间件的完整抽奖系统,含抽奖策略 / 活动 / 奖品三大领域 + ID 生成器 + `dbRouter` 注解路由;配套 4 章笔记 + SQL + XMind + PPT + Excel 教学资料 | `Java 8` · `Spring Boot 2.3` · `MyBatis` · `Dubbo 2.7` · `MySQL` · `dbRouter 分库分表` | 已归档 |
+| [**cloud-short-link (云短链接)**](./archived-projects/cloud-short-link/README.md) | 基于 Spring Cloud Alibaba 的云原生短链生成与管理系统,8 个 Maven 模块(`account` / `link` / `data` / `gateway` / `shop` / `app` / `common` / `short-link`),MurmurHash32 + Base62 + Sharding-JDBC 自研分库分表策略,JWT 鉴权 + 阿里云 OSS / 短信 + Redisson 分布式锁 + XXL-Job | `Java 11` · `Spring Boot 2.5` · `Spring Cloud 2020` · `Spring Cloud Alibaba 2021` · `Nacos` · `MyBatis Plus` · `Sharding-JDBC` · `JWT` · `Redisson` · `XXL-Job` · `阿里云 OSS` | 已归档 |
 
 ### 🟪 工具 / 垂直领域系统
 
 | 项目 | 简介 | 技术栈 | 状态 |
 | --- | --- | --- | --- |
-| [**huawei-alarm (华为云告警机器人)**](./archived-projects/huawei-alarm) | 华为云 AOM 告警 → 飞书机器人的 webhook 通知桥,FastAPI 接收 SMN 推送、解析告警 JSON、按 `chat_type` 分发到飞书群或私聊,支持 `interactive` / `text` 两种消息卡片模板 | `Python 3` · `FastAPI` · `SQLAlchemy` · `PostgreSQL` · `Pydantic` · `requests` · `飞书 OpenAPI` | 已归档(已脱敏) |
-| [**ascvd (心血管风险评估系统)**](./archived-projects/ascvd) | ASCVD 动脉粥样硬化性心血管疾病风险评估与报告系统,Django + DRF + MySQL 后端,React + MobX + Ant Design + React Flow 前端,7 个 Apps 涵盖患者档案 / 血脂亚组分 / 基因多态性 / 疾病字典等 | `Python 3.8` · `Django 4.1` · `DRF 3.13` · `MySQL 8` · `React 18` · `MobX 6` · `Ant Design 4` · `React Flow 11` · `TyAdmin` · `uWSGI` | 已归档(已脱敏 + README 升级) |
-| [**ESContentGen**](./archived-projects/ESContentGen) | 基于 Electron 的桌面应用骨架,主进程 / 渲染进程 / preload 三段式架构 + IPC 双向通道,electron-builder 全平台打包配置(Win NSIS / macOS DMG / Linux AppImage & deb),脚手架阶段业务逻辑尚未展开 | `Electron 35` · `Node.js` · `electron-builder` · `cross-env` · 原生 `HTML` / `CSS` / `JS` | 已归档 |
+| [**huawei-alarm (华为云告警机器人)**](./archived-projects/huawei-alarm/README.md) | 华为云 AOM 告警 → 飞书机器人的 webhook 通知桥,FastAPI 接收 SMN 推送、解析告警 JSON、按 `chat_type` 分发到飞书群或私聊,支持 `interactive` / `text` 两种消息卡片模板 | `Python 3` · `FastAPI` · `SQLAlchemy` · `PostgreSQL` · `Pydantic` · `requests` · `飞书 OpenAPI` | 已归档(已脱敏) |
+| [**ascvd (心血管风险评估系统)**](./archived-projects/ascvd/README.md) | ASCVD 动脉粥样硬化性心血管疾病风险评估与报告系统,Django + DRF + MySQL 后端,React + MobX + Ant Design + React Flow 前端,7 个 Apps 涵盖患者档案 / 血脂亚组分 / 基因多态性 / 疾病字典等 | `Python 3.8` · `Django 4.1` · `DRF 3.13` · `MySQL 8` · `React 18` · `MobX 6` · `Ant Design 4` · `React Flow 11` · `TyAdmin` · `uWSGI` | 已归档(已脱敏 + README 升级) |
+| [**ESContentGen**](./archived-projects/ESContentGen/README.md) | 基于 Electron 的桌面应用骨架,主进程 / 渲染进程 / preload 三段式架构 + IPC 双向通道,electron-builder 全平台打包配置(Win NSIS / macOS DMG / Linux AppImage & deb),脚手架阶段业务逻辑尚未展开 | `Electron 35` · `Node.js` · `electron-builder` · `cross-env` · 原生 `HTML` / `CSS` / `JS` | 已归档 |
 
 > 完整归档规范、提交规范与禁止动作见 [`AGENTS.md`](./AGENTS.md)。
 
