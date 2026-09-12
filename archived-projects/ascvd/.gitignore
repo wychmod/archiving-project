@@ -1,3 +1,7 @@
 /.idea/.gitignore
 /.idea/AscvdBackend.iml
 /.idea
+/static/
+/ascvdreact/build/
+__pycache__/
+*.py[cod]
