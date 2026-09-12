@@ -125,7 +125,7 @@ bolg/
 ├── ARCHIVE.md              # 归档档案
 ├── manage.py               # 命令行入口(Flask-Script)
 ├── test.py
-├── 发表博客插件              # 配套笔记/插件说明
+├── 发表博客插件              # 配套 HTML 笔记文档
 │
 ├── app/
 │   ├── __init__.py         # create_app 应用工厂

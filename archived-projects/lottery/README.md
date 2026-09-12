@@ -7,10 +7,9 @@
 [![Status](https://img.shields.io/badge/status-archive-lightgrey.svg)](#-归档状态)
 [![Java](https://img.shields.io/badge/java-8-007396.svg?logo=openjdk&logoColor=white)](https://www.java.com)
 [![Spring Boot](https://img.shields.io/badge/spring%20boot-2.3.5-6DB33F.svg?logo=springboot&logoColor=white)](https://spring.io)
-[![Dubbo](https://img.shields.io/badge/dubbo-2.6.6-C71F2E.svg?logo=apache&logoColor=white)](https://dubbo.apache.org)
-[![ZooKeeper](https://img.shields.io/badge/zookeeper-3.4.14-3F72AF.svg?logo=apache&logoColor=white)](https://zookeeper.apache.org)
-[![MyBatis](https://img.shields.io/badge/mybatis-3.3.0-000000.svg)](https://mybatis.org)
-[![MySQL](https://img.shields.io/badge/mysql-5.x--connector-4479A1.svg?logo=mysql&logoColor=white)](https://www.mysql.com)
+[![Dubbo](https://img.shields.io/badge/dubbo-2.7.1-C71F2E.svg?logo=apache&logoColor=white)](https://dubbo.apache.org)
+[![MyBatis](https://img.shields.io/badge/mybatis--starter-2.1.4-000000.svg)](https://mybatis.org)
+[![MySQL](https://img.shields.io/badge/mysql--connector-8.0.23-4479A1.svg?logo=mysql&logoColor=white)](https://www.mysql.com)
 
 **一个把 DDD 从口号落到代码的抽奖系统:策略 / 活动 / 奖品三大领域 + 雪花算法 ID 生成器 + 注解式分库分表自研中间件,并附带 4 章笔记、SQL、XMind、PPT、Excel 的全套教学资料。**
 
@@ -71,35 +70,32 @@
 | 类别 | 选型 | 版本 |
 | --- | --- | --- |
 | 语言 | Java | 8 |
-| 框架 | Spring Boot | 2.3.5 |
-| Web | Spring Web Starter + Thymeleaf + JSP/JSTL(Servlet 4.0) | — |
+| 框架 | Spring Boot(parent) | 2.3.5.RELEASE |
+| Web | spring-boot-starter-web(domain / interfaces 模块) | 随 parent |
 
 ### 数据访问
 
 | 类别 | 选型 | 版本 |
 | --- | --- | --- |
-| ORM | MyBatis + MyBatis Spring Boot Starter | 3.3.0 / 2.1.4 |
-| 数据库 | MySQL(Connector 5.1.34) | 5.x Connector |
-| 连接池 | Commons-DBCP2 | 2.6.0 |
-| 缓存 | Redis(spring.redis) | 1.8.4 |
+| ORM | MyBatis Spring Boot Starter | 2.1.4 |
+| 数据库 | MySQL(mysql-connector-java) | 8.0.23 |
 
 ### 微服务 / RPC
 
 | 类别 | 选型 | 版本 |
 | --- | --- | --- |
-| RPC | Dubbo | 2.6.6 |
-| 注册中心 | ZooKeeper | 3.4.14 |
-| 通信 | Netty | 4.1.36.Final |
+| RPC | Apache Dubbo(org.apache.dubbo) | 2.7.1 |
+| 注册方式 | **广播模式**(multicast,`registry.address=N/A`,见 `application.yml`) | — |
 
 ### 自研中间件
 
 | 名称 | 说明 |
 | --- | --- |
-| **DBRouter** | 基于 `DataSource` 代理的注解式分库分表路由(`com.wychmod.middleware.db.router`),支持按哈希字段分库与分表 |
+| **db-router-springboot-starter** | 自研分库分表路由中间件,以独立 Starter 依赖引入(`com.wychmod:db-router-springboot-starter` 1.0-SNAPSHOT);业务侧通过 `@DBRouter(key = "uId")` + `@DBRouterStrategy(splitTable = true)` 注解声明路由规则 |
 
-### 工具与日志
+### 工具与测试
 
-Fastjson 1.2.58/1.2.60 · Jackson 2.5.4 · Commons-Lang3 3.8 · Dom4j 1.6.1 · XStream 1.4.10 · SLF4J 1.7.7 · Logback 1.0.9 · JUnit 4.12
+Hutool 5.5.0 · Fastjson 1.2.78 · Commons-Lang3 3.8 · JUnit 4.12(Surefire skipTests)
 
 ---
 
@@ -127,7 +123,7 @@ Fastjson 1.2.58/1.2.60 · Jackson 2.5.4 · Commons-Lang3 3.8 · Dom4j 1.6.1 · X
 └──────────────────────────────────────────┼──────────────────┘
                                            ▼
                       ┌────────────────────────────────┐
-                      │  自研 DBRouter 中间件            │
+                      │  dbRouter 中间件(自研 Starter)   │
                       │  @DBRouter(key="uId")           │
                       │  Spring AOP + DataSource 代理    │
                       └───────────────┬────────────────┘
@@ -136,7 +132,7 @@ Fastjson 1.2.58/1.2.60 · Jackson 2.5.4 · Commons-Lang3 3.8 · Dom4j 1.6.1 · X
                    │ 库0/表0-9 │  │ 库1/表0-9 │  │ 库a/表0-9 │
                    └──────────┘  └──────────┘  └──────────┘
 
-       RPC 通信链路:Dubbo 2.6.6 + ZooKeeper 注册中心
+       RPC 通信链路:Apache Dubbo 2.7.1(广播模式 multicast)
 ```
 
 ---
@@ -174,18 +170,20 @@ lottery/
 > ⚠️ **归档快照**:依赖停留在 2020-2022 年水平,仅供历史学习参考。
 
 ```bash
-# 1) 环境准备:JDK 1.8 + Maven 3 + MySQL + Redis + ZooKeeper
+# 1) 环境准备:JDK 1.8 + Maven 3 + MySQL
+#    (RPC 走广播模式 multicast,无需外部注册中心)
 
-# 2) 初始化数据库
+# 2) 构建依赖前置:db-router-springboot-starter 为 1.0-SNAPSHOT
+#    本地依赖,需先拥有该中间件源码并 mvn install 到本地仓库
+
+# 3) 初始化数据库
 #    导入 doc/assets/sql/lottery.sql(及 lottery_01 / lottery_02 增量脚本)
-#    注意:MySQL Connector 5.1.34 连 MySQL 8 服务端需处理
-#    caching_sha2_password 认证兼容设置
 
-# 3) 构建
+# 4) 构建
 mvn clean package -DskipTests
 
-# 4) 阅读(推荐顺序)
-#    doc/notes/ 第 01 章 → 02 章(DDD+RPC 架构) → 03 章(RPC 调用)
+# 5) 阅读(推荐顺序)
+#    doc/notes/ 第 01 章 → 02 章(DDD+RPC 架构) → 03 章(广播模式 RPC)
 #    → 04 章(活动领域策略与库表),对照 doc/assets/xmind/ 思维导图
 ```
 
@@ -210,8 +208,8 @@ mvn clean package -DskipTests
 - **DDD 完整落地**:application / domain / infrastructure / interfaces / rpc / common 六模块中,聚合根、值对象、仓储的实际写法
 - **领域服务中的设计模式群**:模板方法(抽奖流程)+ 策略(单项/总体概率)+ 简单工厂(四种奖品)+ 上下文(ID 生成),每个模式都有真实业务落点
 - **活动状态机的工程实现**:7 状态 × event 继承体系 + `StateConfig` 映射 + `StateHandlerImpl` 流程驱动
-- **注解驱动自研中间件**:`@DBRouter` 如何借 Spring AOP + DataSource 代理实现透明分库分表——中间件原理的最佳入门材料
-- **RPC 调用链**:Dubbo 服务发布、消费,interfaces 层跨进程调用 rpc 层的完整链路
+- **注解驱动自研中间件**:`@DBRouter` 注解如何借 Spring AOP + DataSource 代理实现透明分库分表——中间件原理的最佳入门材料(中间件本体为独立 Starter 工程,本仓库展示的是消费端接入方式)
+- **RPC 调用链**:Dubbo 服务发布、消费,广播模式(multicast)下的跨进程通信——与教学笔记第 03 章一一对应
 - **按日切特性开发范本**:原仓库 10 个分支记录了从空骨架到分库分表的每日演进(见 ARCHIVE.md 分支表)
 
 ---
@@ -220,8 +218,8 @@ mvn clean package -DskipTests
 
 | # | 问题 | 说明 |
 | --- | --- | --- |
-| 1 | 依赖版本老旧 | Spring Boot 2.3.5 / Dubbo 2.6.6 / ZooKeeper 3.4.14 / MySQL Connector 5.x,重运行需按目标环境调整 |
-| 2 | MySQL 驱动兼容 | Connector 5.x 连 MySQL 8 需处理 `caching_sha2_password` 认证 |
+| 1 | 依赖版本老旧 | Spring Boot 2.3.5.RELEASE / Apache Dubbo 2.7.1(2020 年前后水平),重运行需按目标环境调整 |
+| 2 | dbRouter Starter 为本地依赖 | `com.wychmod:db-router-springboot-starter:1.0-SNAPSHOT` 不在公共仓库,需自行获取源码 `mvn install` 后才能编译本项目 |
 | 3 | 含 IDE 工程配置 | 目录中保留 `.idea/`,仅供还原开发环境参考 |
 
 ---

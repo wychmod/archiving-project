@@ -148,8 +148,6 @@ return ShardingDBConfig.getDBPrefix() + code + ShardingTableConfig.getRandomTabl
 ```
 cloud-short-link/
 ├── pom.xml                     # 父 POM(8 模块聚合,三件套版本统一管理)
-├── link_group_table.sql        # link_group 建表脚本
-├── short_link_table.sql        # short_link 建表脚本
 │
 ├── cloud-common/               # 公共组件
 │   └── config/ constant/ enums/ exception/
@@ -168,7 +166,9 @@ cloud-short-link/
 ├── cloud-data/                 # 数据服务(脚手架)
 ├── cloud-shop/                 # 商城服务(脚手架)
 ├── cloud-app/                  # 通用应用入口骨架
-└── cloud-short-link/           # 预留模块(仅含 2 张建表 SQL)
+└── cloud-short-link/           # 预留模块(仅含建表 SQL)
+    ├── link_group_table.sql    # link_group 建表脚本
+    └── short_link_table.sql    # short_link 建表脚本
 ```
 
 ---

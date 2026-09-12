@@ -5,7 +5,7 @@
 ### 基于 Django 的 O2O 闪送超市电商 Demo
 
 [![Status](https://img.shields.io/badge/status-archive-lightgrey.svg)](#-归档状态)
-[![Python](https://img.shields.io/badge/python-2%2F3-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
+[![Python](https://img.shields.io/badge/python-3-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
 [![Django](https://img.shields.io/badge/django-1.11.4-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com)
 [![jQuery](https://img.shields.io/badge/jquery-3.1.1-0769AD.svg?logo=jquery&logoColor=white)](https://jquery.com)
 [![Bootstrap](https://img.shields.io/badge/bootstrap-3.x-7952B3.svg?logo=bootstrap&logoColor=white)](https://getbootstrap.com)
@@ -66,7 +66,7 @@
 
 | 类别 | 选型 | 版本 | 用途 |
 | --- | --- | --- | --- |
-| 语言 | Python | 2/3 兼容写法 | 主开发语言 |
+| 语言 | Python | 3 | 主开发语言 |
 | Web 框架 | Django | 1.11.4 | MTV 架构、ORM、模板、会话 |
 | 数据库 | SQLite | Django 默认 | 数据持久化 |
 | 模板 | Django Templates | — | 模板继承 + `{% load static %}` 静态加载 |
