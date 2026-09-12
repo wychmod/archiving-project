@@ -5,7 +5,7 @@
 > *集中即索引 · 保真优先 · 状态透明*
 
 ![Status](https://img.shields.io/badge/Status-Archive-blueviolet?style=for-the-badge)
-![Projects](https://img.shields.io/badge/Archived-10-orange?style=for-the-badge)
+![Projects](https://img.shields.io/badge/Archived-11-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Stack](https://img.shields.io/badge/Stack-Polyglot-ff69b4?style=for-the-badge)
 ![AI Agents](https://img.shields.io/badge/AI%20Agents-Ready-9cf?style=for-the-badge)
@@ -44,7 +44,7 @@
 
 | 特性 | 说明 |
 | --- | --- |
-| 🗂️ **10 个归档项目** | 横跨 8+ 个技术栈,涵盖 LLM 应用、全栈练手、企业中台、桌面应用、运维工具与医疗系统 |
+| 🗂️ **11 个归档项目** | 横跨 8+ 个技术栈,涵盖 LLM 应用、全栈练手、企业中台、自研中间件、桌面应用、运维工具与医疗系统 |
 | 📜 **保留原始历史** | 全部通过 `git subtree` 迁入,提交链可逐 commit 回溯 |
 | 🔐 **凭证已脱敏** | 涉及真实密钥 / Token 的项目在导入时已做安全处理(详见 [🔐 安全声明](#-安全声明)) |
 | 🤖 **AI Agent 友好** | 配套 [`AGENTS.md`](./AGENTS.md) + [`CLAUDE.md`](./CLAUDE.md),自动化工具有规可循 |
@@ -78,6 +78,7 @@
 | --- | --- | --- | --- |
 | [**wiki (知识库)**](./archived-projects/wiki/README.md) | 全栈知识库 / 文档管理系统,Spring Boot + Vue 3 + Ant Design Vue,以「电子书 → 分类 → 文档」三层结构组织内容,支持富文本编辑、树形分类、文档点赞、WebSocket 实时通知、阅读量统计与定时快照 | `Java 8` · `Spring Boot 2.4` · `MyBatis` · `MySQL 8` · `Redis` · `WebSocket` · `PageHelper` · `Vue 3` · `TypeScript` · `Ant Design Vue` · `wangEditor` | 已归档 |
 | [**Lottery (抽奖系统)**](./archived-projects/lottery/README.md) | DDD 四层架构 + Spring Boot + Dubbo RPC + 自研分库分表中间件的完整抽奖系统,含抽奖策略 / 活动 / 奖品三大领域 + ID 生成器 + `dbRouter` 注解路由;配套 4 章笔记 + SQL + XMind + PPT + Excel 教学资料 | `Java 8` · `Spring Boot 2.3` · `MyBatis` · `Dubbo 2.7` · `MySQL` · `dbRouter 分库分表` | 已归档 |
+| [**db-router-springboot-starter**](./archived-projects/db-router-springboot-starter/README.md) | 注解式分库分表路由中间件(Spring Boot Starter),基于 HashMap 扰动函数哈希散列,AOP + ThreadLocal + 动态数据源切换 + MyBatis 拦截器改写表名;Lottery 抽奖系统所依赖的 `db-router-springboot-starter:1.0-SNAPSHOT` 本体 | `Java 8` · `Spring Boot 2.3` · `MyBatis 插件` · `AOP` · `AbstractRoutingDataSource` | 已归档 |
 | [**cloud-short-link (云短链接)**](./archived-projects/cloud-short-link/README.md) | 基于 Spring Cloud Alibaba 的云原生短链生成与管理系统,8 个 Maven 模块(`account` / `link` / `data` / `gateway` / `shop` / `app` / `common` / `short-link`),MurmurHash32 + Base62 + Sharding-JDBC 自研分库分表策略,JWT 鉴权 + 阿里云 OSS / 短信 + Redisson 分布式锁 + XXL-Job | `Java 11` · `Spring Boot 2.5` · `Spring Cloud 2020` · `Spring Cloud Alibaba 2021` · `Nacos` · `MyBatis Plus` · `Sharding-JDBC` · `JWT` · `Redisson` · `XXL-Job` · `阿里云 OSS` | 已归档 |
 
 ### 🟪 工具 / 垂直领域系统
@@ -101,7 +102,7 @@
 | 语言 | 项目数 | 代表项目 |
 | --- | ---: | --- |
 | 🐍 **Python** | 5 | ToDoList · 1802axf · bolg · huawei-alarm · ascvd |
-| ☕ **Java** | 4 | wiki · Lottery · cloud-short-link · (ChatGPT-Next-Web 的 Next.js 后端 API 路由) |
+| ☕ **Java** | 5 | wiki · Lottery · cloud-short-link · db-router-springboot-starter · (ChatGPT-Next-Web 的 Next.js 后端 API 路由) |
 | 🌐 **TypeScript / JavaScript** | 5 | ChatGPT-Next-Web · ToDoList(前端) · wiki(前端) · ascvd(前端) · cloud-short-link(网关) |
 | 🟢 **Node.js / Electron** | 1 | ESContentGen |
 
@@ -121,6 +122,7 @@
 | --- | ---: | --- |
 | 🧱 **经典 MVC / MVT** | 4 | ToDoList · 1802axf · bolg · wiki |
 | 🧬 **DDD 四层架构** | 1 | Lottery |
+| 🧩 **自研中间件 (Spring Boot Starter)** | 1 | db-router-springboot-starter |
 | ☁️ **微服务 / Spring Cloud Alibaba** | 1 | cloud-short-link |
 | ⚡ **Serverless / Webhook 桥** | 1 | huawei-alarm |
 | 📦 **SPA + REST** | 2 | ascvd · ChatGPT-Next-Web |
@@ -133,6 +135,7 @@
 > 按 `git log` 中 `archive:` 前缀的提交顺序倒序排列,作为仓库成长史的一瞥。
 
 ```
+2026-09-13  ┃  ★ db-router-springboot-starter (注解式分库分表中间件 · 原仓库已清空复用)
 2026-06-28  ┃  ★ ESContentGen         (Electron 桌面应用骨架)
 2026-06-28  ┃  ★ cloud-short-link     (Spring Cloud Alibaba 云短链)
 2026-06-28  ┃  ★ ascvd                (心血管风险评估 · 已脱敏)
@@ -164,6 +167,7 @@ archiving-project/
     ├── huawei-alarm/                  # ARCHIVE.md · FastAPI 华为云告警 → 飞书(已脱敏)
     ├── ascvd/                         # ARCHIVE.md · Django + React 心血管风险评估(已脱敏)
     ├── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
+    ├── db-router-springboot-starter/  # ARCHIVE.md · 注解式分库分表中间件(原仓库已清空复用)
     └── ESContentGen/                  # ARCHIVE.md · Electron 桌面应用骨架
 ```
 
