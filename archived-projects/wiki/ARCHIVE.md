@@ -8,7 +8,7 @@
 - 导入提交：4da2ce2696d410fae9f95090a9756ddf7946d91e
 - 提交日期：2021-11-03
 - 提交说明：完整修改
-- 当前状态：已归档，仅保留源码作为历史学习参考
+- 当前状态：已归档（2026-09-13 已用完整提交历史重导入），仅保留源码作为历史学习参考
 
 ## 项目简介
 
@@ -82,3 +82,9 @@
 Spring Boot 停在 2.4.0（2020 年末版本），依赖（Vue 3.1、Vue CLI 4.5、Ant Design Vue 2.2、TypeScript 4.1、MySQL Connector 8.0.22）也比较早期；如需重新运行需要按当时版本准备 JDK 1.8 + Node 环境 + MySQL 8。`doc/all.sql` 提供完整建表脚本，可直接导入。
 
 代码中包含历史配置（如 `application.properties` 中的本地数据库账号密码、MyBatis Generator 配置），属于学习项目常见做法，不可直接用于生产环境。
+### 2026-09-13 完整历史重导入
+
+- 初次归档采用 squash 导入,提交链不可回溯;2026-09-13 从本地工作副本 `~/IdeaProjects/wiki` 以 `git subtree add` 重新导入 `main` 分支的 **99 个完整提交**(`387f08b` init → `4da2ce2` 完整修改),导入后源码树与旧 squash 快照逐字节一致
+- 敏感信息:全历史扫描仅发现本地开发占位凭证(localhost 的 `wiki/wiki`),无需脱敏
+- 本地副本中另有 11 个未提交文件(`application-prod.properties`、`wiki.sql`、`doc/server.conf` 等生产配置),**不在任何提交中,未随归档导入**
+- 恢复轨迹可追溯:squash 导入 → 快照移除(`chore: drop squash snapshot`)→ 完整重导入(`archive: re-import`)
