@@ -61,7 +61,7 @@ jobs:
         run: |
           gem install html-proofer -v '~> 5.0' --no-document
           set +e
-          htmlproofer "$RUNNER_ROOT/_site${{ steps.pages.outputs.base_path }}" \
+          htmlproofer "${{ github.workspace }}/_site${{ steps.pages.outputs.base_path }}" \
             \-\-disable-external \
             \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/" \
             > /tmp/proofer.log 2>&1
