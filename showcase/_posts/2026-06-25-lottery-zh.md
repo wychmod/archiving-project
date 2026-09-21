@@ -5,7 +5,7 @@ lang: zh-CN
 ref: lottery
 categories: [企业级 / 中台架构]
 tags: [Java, DDD, Dubbo, Spring Boot, 分库分表]
-description: DDD 四层架构 + Dubbo RPC + 自研分库分表中间件的完整抽奖系统,配套 4 章笔记与教学资料
+description: 基于 DDD 四层架构 + Spring Boot + Dubbo RPC 的完整抽奖系统:策略/活动/奖品三大业务领域、雪花/短码/随机数 ID 生成器、自研分库分表路由,附 4 章笔记与全套教学资料
 ---
 
 ## 概览
@@ -39,17 +39,27 @@ description: DDD 四层架构 + Dubbo RPC + 自研分库分表中间件的完整
 
 ### 通用能力
 
-- **ID 生成器**:雪花算法 / 短码 / 随机数字,通过策略上下文动态选择
-- **自研分库分表**:`@DBRouter` 注解 + `@DBRouterStrategy(splitTable = true)`,基于用户 ID 哈希路由到不同库表
-- **RPC 调用链**:Dubbo 服务发布与消费,interfaces 层与 rpc 层的跨进程通信
+- **ID 生成器**:雪花算法 / 短码 / 随机数字,通过策略上下文 `IdContext` 动态选择
+- **自研分库分表**:`@DBRouter(key = "uId")` 注解 + `@DBRouterStrategy(splitTable = true)`,基于用户 ID 哈希路由到不同库表
+- **RPC 调用链**:Dubbo 2.6.6 + ZooKeeper 注册中心的服务发布与消费,interfaces 层与 rpc 层的跨进程通信
+- **状态机工程实现**:7 个状态 event 类继承 `AbstractState`,`StateConfig` 状态映射,`StateHandlerImpl` 流程驱动
+
+### 开发脉络
+
+原仓库共 10 个分支,均按 `日期_作者_动作` 命名,是典型的"按日切特性"开发模式:从 `221024_wychmod_initProject`
+(空骨架)→ `221026_wychmod_strategy`(策略域)→ `221029_wychmod_award`(发奖域)→ `221030_wychmod_activity`
+(活动域)→ `221031_wychmod_IdGenerator`(ID 生成器)→ `221102_wychmod_dbRouter`(分库分表),共 12 个完整提交,
+能清楚看到项目如何一天天长出完整架构。
 
 ## 学习收获
 
-这是归档序列里**架构含量最高**的项目之一:DDD 的分层落地、设计模式在真实业务里的组合使用
-(模板方法 + 策略 + 简单工厂 + 状态机)、注解驱动中间件的实现原理,都在一个可运行的业务里集中呈现。
-配套的 4 章笔记与 XMind 使它可以"从设计到实现"全链路对照阅读。
+这是归档序列里**架构含量最高**的项目之一:DDD 的分层落地(application / domain / infrastructure /
+interfaces / rpc / common 六模块)、设计模式在真实业务里的组合使用(模板方法 + 策略 + 简单工厂 + 状态机)、
+注解驱动中间件的实现原理,都在一个可运行的业务里集中呈现。配套的 4 章笔记、3 个 SQL 脚本、4 个 XMind
+思维导图与 PPT / Excel 数据字典,使它可以"从设计到实现"全链路对照阅读。
 
-依赖版本停留在 2020-2022 年水平,重跑需要按目标环境调整(例如 MySQL Connector 5.x 与 MySQL 8 的认证兼容)。
+依赖版本停留在 2020-2022 年水平,重跑需要按目标环境调整(例如 MySQL Connector 5.x 与 MySQL 8 的
+`caching_sha2_password` 认证兼容);`doc/assets/sql/lottery.sql` 等建表脚本可直接导入初始化数据库。
 
 ## 归档信息
 

@@ -5,7 +5,7 @@ lang: en
 ref: db-router-springboot-starter
 categories: [Enterprise Architecture]
 tags: [Java, Spring Boot Starter, MyBatis, AOP, Database Sharding]
-description: An annotation-driven DB/table routing middleware shipped as a Spring Boot Starter — HashMap-style hash spreading, AOP, ThreadLocal, and a MyBatis interceptor
+description: An annotation-driven sharding middleware shipped as a Spring Boot Starter — AOP interception of @DBRouter, hash spreading, ThreadLocal routing, dynamic data-source switching, and a MyBatis interceptor rewriting table names; the 1.0-SNAPSHOT artifact the Lottery system depends on
 ---
 
 ## Overview
@@ -28,6 +28,31 @@ in this archive depends on as `db-router-springboot-starter:1.0-SNAPSHOT` — th
 **Status**: Archived (full commit history). The original repository was reset for reuse, so this copy is the
 only remaining version of the code.
 
+## Project Structure
+
+```
+src/main/java/com/wychmod/middleware/db/router/
+├── DBRouterJoinPoint.java       # @Aspect intercepting @DBRouter, reading the routing key
+├── DBContextHolder.java         # ThreadLocal context (dbKey / tbKey)
+├── DBRouterConfig.java          # dbCount / tbCount / routerKey config bean
+├── annotation/
+│   ├── DBRouter.java            # routing annotation (key = sharding field, falls back to routerKey)
+│   └── DBRouterStrategy.java    # table-split marker (splitTable)
+├── config/
+│   └── DataSourceAutoConfig.java # EnvironmentAware parsing of multi-datasource YAML, wiring every bean
+├── dynamic/
+│   ├── DynamicDataSource.java   # AbstractRoutingDataSource with determineCurrentLookupKey
+│   └── DynamicMybatisPlugin.java # MyBatis interceptor rewriting SQL table names by regex
+├── strategy/
+│   ├── IDBRouterStrategy.java   # routing strategy interface
+│   └── impl/DBRouterStrategyHashCode.java # perturbed-hash routing implementation
+└── util/PropertyUtil.java
+resources/META-INF/spring.factories  # EnableAutoConfiguration → DataSourceAutoConfig
+```
+
+The `img/` directory also includes a class diagram (bean wiring) and a sequence diagram (routing execution
+flow) to read alongside the code.
+
 ## Tech Stack
 
 | Layer | Choice |
@@ -41,11 +66,11 @@ only remaining version of the code.
 
 ## Architecture Highlights
 
-- **Transparent, annotation-driven routing**: `@DBRouter(key = "uId")` marks the routing argument — zero intrusion into business code
+- **Transparent, annotation-driven routing**: `@DBRouter(key = "uId")` marks the routing argument — zero intrusion into business code; an empty key falls back to the global `routerKey`
 - **A perturbed-hash router**: `DBRouterStrategyHashCode` borrows the spreading idea from the JDK `HashMap` for even distribution
-- **A ThreadLocal context**: `DBContextHolder` carries the DB/table index through the request thread, bridging the aspect and the interceptor
-- **SQL table rewriting as a MyBatis plugin**: `DynamicMybatisPlugin` performs the regex replacement during `StatementHandler.prepare`
-- **Starter auto-configuration**: `spring.factories` registers `DataSourceAutoConfig`, and `EnvironmentAware` parses multi-datasource YAML
+- **ThreadLocal lifecycle management**: the aspect force-clears the context in `finally`, avoiding memory leaks and cross-request contamination on thread reuse
+- **SQL table rewriting as a MyBatis plugin**: `DynamicMybatisPlugin` reads `BoundSql` via `MetaObject` reflection during `StatementHandler.prepare`, capturing table names by regex and appending the split suffix
+- **Starter auto-configuration**: `spring.factories` registers `DataSourceAutoConfig`, `EnvironmentAware` parses multi-datasource YAML, and `@ConditionalOnMissingBean` keeps user overrides possible
 
 ## What It Taught Me
 

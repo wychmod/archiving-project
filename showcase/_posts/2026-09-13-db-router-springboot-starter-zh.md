@@ -5,7 +5,7 @@ lang: zh-CN
 ref: db-router-springboot-starter
 categories: [企业级 / 中台架构]
 tags: [Java, Spring Boot Starter, MyBatis, AOP, 分库分表]
-description: 以 Spring Boot Starter 形态提供的注解式分库分表路由中间件:HashMap 扰动哈希 + AOP + ThreadLocal + MyBatis 拦截器
+description: 以 Spring Boot Starter 形态提供的注解式分库分表路由中间件:AOP 拦截 @DBRouter 注解 + 扰动哈希 + ThreadLocal + 动态数据源切换,MyBatis 拦截器改写表名;Lottery 系统所依赖的 1.0-SNAPSHOT 本体
 ---
 
 ## 概览
@@ -23,6 +23,30 @@ description: 以 Spring Boot Starter 形态提供的注解式分库分表路由�
 
 **当前状态**:已归档(完整提交历史),原仓库已清空复用为本目录是代码唯一保留副本。
 
+## 工程结构
+
+```
+src/main/java/com/wychmod/middleware/db/router/
+├── DBRouterJoinPoint.java       # @Aspect 切面:拦截 @DBRouter,读入参路由键
+├── DBContextHolder.java         # ThreadLocal 上下文(dbKey / tbKey)
+├── DBRouterConfig.java          # dbCount / tbCount / routerKey 配置 Bean
+├── annotation/
+│   ├── DBRouter.java            # 路由注解(key=分库分表字段,可空回退 routerKey)
+│   └── DBRouterStrategy.java    # 分表标记(splitTable)
+├── config/
+│   └── DataSourceAutoConfig.java # EnvironmentAware 解析 yml 多数据源并装配全部 Bean
+├── dynamic/
+│   ├── DynamicDataSource.java   # AbstractRoutingDataSource,determineCurrentLookupKey
+│   └── DynamicMybatisPlugin.java # MyBatis 拦截器,正则改写 SQL 表名
+├── strategy/
+│   ├── IDBRouterStrategy.java   # 路由策略接口
+│   └── impl/DBRouterStrategyHashCode.java # 扰动哈希路由实现
+└── util/PropertyUtil.java
+resources/META-INF/spring.factories  # EnableAutoConfiguration → DataSourceAutoConfig
+```
+
+`img/` 目录还带一张类图(Bean 装配关系)和一张时序图(路由执行流程),可直接对照阅读。
+
 ## 技术栈
 
 | 层 | 选型 |
@@ -36,11 +60,11 @@ description: 以 Spring Boot Starter 形态提供的注解式分库分表路由�
 
 ## 架构亮点
 
-- **注解驱动的透明路由**:`@DBRouter(key = "uId")` 标注入参字段,业务代码零侵入
+- **注解驱动的透明路由**:`@DBRouter(key = "uId")` 标注入参字段,业务代码零侵入;key 留空时回退全局 `routerKey`
 - **扰动哈希路由实现**:`DBRouterStrategyHashCode` 复用 JDK HashMap 的散列思想,保证均匀分布
-- **ThreadLocal 上下文**:`DBContextHolder` 在请求线程内传递库/表索引,跨 AOP 与拦截器协作
-- **MyBatis 插件改写表名**:`DynamicMybatisPlugin` 在 `StatementHandler.prepare` 阶段正则替换
-- **Starter 自动装配**:`spring.factories` 注册 `DataSourceAutoConfig`,`EnvironmentAware` 解析 yml 多数据源
+- **ThreadLocal 生命周期管理**:切面 `finally` 中强制 `clear()`,规避线程复用下的内存泄漏与串库
+- **MyBatis 插件改写表名**:`DynamicMybatisPlugin` 在 `StatementHandler.prepare` 阶段经 `MetaObject` 反射读取 `BoundSql`,正则捕获表名并追加分表后缀
+- **Starter 自动装配**:`spring.factories` 注册 `DataSourceAutoConfig`,`EnvironmentAware` 解析 yml 多数据源,`@ConditionalOnMissingBean` 保留用户替换能力
 
 ## 学习收获
 
