@@ -57,4 +57,4 @@ description: DDD 四层架构 + Dubbo RPC + 自研分库分表中间件的完整
 - **源码入口**:[`archived-projects/lottery/`](https://github.com/wychmod/archiving-project/tree/main/archived-projects/lottery)
 - **归档说明**:[ARCHIVE.md](https://github.com/wychmod/archiving-project/blob/main/archived-projects/lottery/ARCHIVE.md)
 - **教学资料**:`doc/notes/` 四章笔记 · `doc/assets/sql/` 建表脚本 · `doc/assets/xmind/` 思维导图
-- **配套中间件**:[db-router-springboot-starter](/posts/db-router-springboot-starter-a-db-sharding-middleware-as-a-spring-boot-starter/) 是本项目依赖的 `db-router-springboot-starter:1.0-SNAPSHOT` 本体
+- **配套中间件**:[db-router-springboot-starter]({% link _posts/2026-09-13-db-router-springboot-starter-zh.md %}) 是本项目依赖的 `db-router-springboot-starter:1.0-SNAPSHOT` 本体

@@ -21,7 +21,7 @@ function), it distributes routing keys evenly across databases and tables:
   for DAOs marked with `@DBRouterStrategy(splitTable = true)`, using the table index in the `ThreadLocal`
   (for example `user` → `user_003`)
 
-It is the **actual artifact** that the [Lottery system](/posts/lottery-a-ddd-layered-lottery-system-with-dubbo-and-self-built-sharding/)
+It is the **actual artifact** that the [Lottery system]({% link _posts/2026-06-25-lottery-en.md %})
 in this archive depends on as `db-router-springboot-starter:1.0-SNAPSHOT` — the two projects form a complete
 "middleware + consumer" pair.
 

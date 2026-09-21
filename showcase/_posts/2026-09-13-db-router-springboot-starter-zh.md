@@ -18,7 +18,7 @@ description: 以 Spring Boot Starter 形态提供的注解式分库分表路由�
 - **分表**:MyBatis 拦截器(`StatementHandler.prepare`)拦截 SQL,对标注 `@DBRouterStrategy(splitTable = true)`
   的 DAO,按 ThreadLocal 中的表索引正则改写表名(如 `user` → `user_003`)
 
-它是归档仓库中 [Lottery 抽奖系统](/posts/lottery-a-ddd-layered-lottery-system-with-dubbo-and-self-built-sharding/)
+它是归档仓库中 [Lottery 抽奖系统]({% link _posts/2026-06-25-lottery-zh.md %})
 所依赖的 `db-router-springboot-starter:1.0-SNAPSHOT` 的**本体**——两个项目构成"中间件 + 消费方"的完整对照样本。
 
 **当前状态**:已归档(完整提交历史),原仓库已清空复用为本目录是代码唯一保留副本。

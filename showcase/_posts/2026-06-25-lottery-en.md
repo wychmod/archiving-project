@@ -60,4 +60,4 @@ MySQL Connector 5.x versus MySQL 8 authentication compatibility).
 - **Source**: [`archived-projects/lottery/`](https://github.com/wychmod/archiving-project/tree/main/archived-projects/lottery)
 - **Archive note**: [ARCHIVE.md](https://github.com/wychmod/archiving-project/blob/main/archived-projects/lottery/ARCHIVE.md)
 - **Course kit**: `doc/notes/` (four chapters) · `doc/assets/sql/` schema · `doc/assets/xmind/` mind maps
-- **Companion middleware**: [db-router-springboot-starter](/posts/db-router-springboot-starter-a-db-sharding-middleware-as-a-spring-boot-starter/) is the actual `db-router-springboot-starter:1.0-SNAPSHOT` this project depends on
+- **Companion middleware**: [db-router-springboot-starter]({% link _posts/2026-09-13-db-router-springboot-starter-en.md %}) is the actual `db-router-springboot-starter:1.0-SNAPSHOT` this project depends on
