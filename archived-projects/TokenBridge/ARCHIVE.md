@@ -2,7 +2,7 @@
 
 ## 基本信息
 
-- 原仓库:git@github.com:wychmod/localgateway.git(项目原名 `localgateway`,2026-05-13 由提交 `c0ac37e` 更名为 `TokenBridge`)
+- 原仓库:git@github.com:wychmod/TokenBridge.git(项目与 GitHub 仓库原名 `localgateway`,后随代码提交 `c0ac37e` 更名为 `TokenBridge`,旧地址自动重定向;仓库已于 2026-09-22 清空为空提交)
 - 归档目录:archived-projects/TokenBridge/
 - 归档日期:2026-09-22
 - 导入分支:`master`(源仓库主分支;另两个分支 `codex/ai`、`codex/token-usage-recalc` 均已完全合入 master,无独有提交)
