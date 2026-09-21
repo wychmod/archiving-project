@@ -13,7 +13,7 @@
 | 视觉 | 严格 1:1 复刻 Chirpy 官方 Demo(深色/浅色双主题、侧边栏、卡片式文章流、标签/分类页、搜索) |
 | 部署 | GitHub Pages,仓库内 `showcase/` 目录为站点源码,baseurl 由部署工作流自动处理为 `/archiving-project` |
 | 双语 | 站点默认中文;11 个归档项目每个都有中/英两篇文章,UI 语言随文章自动切换 |
-| 额外 | 侧边栏底部加一个轻量中/英切换入口(相对 Demo 的唯一可见差异,约一行文字) |
+| 额外 | 侧边栏底部加一个轻量中/英切换入口(相对 Demo 的唯一可见差异,约一行文字);另覆盖 `update-list.html` 修复「最近更新」面板的中英排序(§5.3,非样式差异) |
 | 不动的东西 | `archived-projects/`、根 `README.md`、`AGENTS.md`、`CLAUDE.md` 零改动;不改归档项目源码 |
 | 不做的事 | 不做评论区、不做统计埋点、不做 PWA 定制、不引入 npm 构建链 |
 
@@ -175,6 +175,18 @@ description: 一句话摘要(出现在卡片与 SEO meta)
    `/* append your custom style below */`),沿用主题 CSS 变量,不引入新颜色
 
 > 风险提示:覆盖主题的 `sidebar.html` / 样式表意味着 Chirpy 大版本升级时需要重新比对。升级策略见 §8。
+
+### 5.3 站点级覆盖:`update-list.html`(最近更新面板)
+
+`_includes/update-list.html` 覆盖主题同名 include(2026-09-21 引入),逻辑与主题 7.6 原版一致,
+仅修复一个排序缺陷:
+
+- **问题**:中英两篇常在同一提交中更新,`_plugins/posts-lastmod-hook.rb` 会给它们相同的
+  `last_modified_at`;主题原版在时间戳完全平局时按 `datetime::index` 字符串序排序,结果不稳定,
+  会出现英文篇排在中文篇前面的情况
+- **修复**:排序键改为 `datetime::lang_rank::index`,`lang_rank` 中文篇为 1、英文篇为 0,
+  保证同一更新时间下中文篇始终排在英文篇前面(与「站点展示以中文为主」的定位一致)
+- **行为差异**:仅影响「最近更新」面板的排序稳定性,不改变面板展示 5 篇文章的数量与样式
 
 ---
 
