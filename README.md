@@ -157,18 +157,20 @@ archiving-project/
 ├── README.md                          # 本文件 · 项目门面
 ├── AGENTS.md                          # 通用 AI Agent 操作规范(权威源)
 ├── CLAUDE.md                          # Claude / Anthropic 系 agent 补充偏好
-└── archived-projects/                 # 历史归档项目(默认只读快照)
-    ├── ChatGPT-Next-Web/              # ARCHIVE.md · 跨平台 ChatGPT Web UI
-    ├── ToDoList/                      # ARCHIVE.md · Django + React 待办事项
-    ├── 1802axf/                       # ARCHIVE.md · Django 课设 O2O 闪送超市
-    ├── wiki/                          # ARCHIVE.md · Spring Boot + Vue 知识库
-    ├── bolg/                          # ARCHIVE.md · Flask 全栈博客
-    ├── lottery/                       # ARCHIVE.md · DDD + Dubbo 抽奖系统
-    ├── huawei-alarm/                  # ARCHIVE.md · FastAPI 华为云告警 → 飞书(已脱敏)
-    ├── ascvd/                         # ARCHIVE.md · Django + React 心血管风险评估(已脱敏)
-    ├── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
-    ├── db-router-springboot-starter/  # ARCHIVE.md · 注解式分库分表中间件(原仓库已清空复用)
-    └── ESContentGen/                  # ARCHIVE.md · Electron 桌面应用骨架
+├── archived-projects/                 # 历史归档项目(默认只读快照)
+│   ├── ChatGPT-Next-Web/              # ARCHIVE.md · 跨平台 ChatGPT Web UI
+│   ├── ToDoList/                      # ARCHIVE.md · Django + React 待办事项
+│   ├── 1802axf/                       # ARCHIVE.md · Django 课设 O2O 闪送超市
+│   ├── wiki/                          # ARCHIVE.md · Spring Boot + Vue 知识库
+│   ├── bolg/                          # ARCHIVE.md · Flask 全栈博客
+│   ├── lottery/                       # ARCHIVE.md · DDD + Dubbo 抽奖系统
+│   ├── huawei-alarm/                  # ARCHIVE.md · FastAPI 华为云告警 → 飞书(已脱敏)
+│   ├── ascvd/                         # ARCHIVE.md · Django + React 心血管风险评估(已脱敏)
+│   ├── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
+│   ├── db-router-springboot-starter/  # ARCHIVE.md · 注解式分库分表中间件(原仓库已清空复用)
+│   └── ESContentGen/                  # ARCHIVE.md · Electron 桌面应用骨架
+└── showcase/                          # 展示站(Jekyll + Chirpy,部署到 GitHub Pages)
+    └── docs/DESIGN.md                 # 站点设计说明(双语方案 / 部署 / 内容规范)
 ```
 
 ---
@@ -185,11 +187,12 @@ flowchart LR
     B --> B2["归档前清理\nvenv/构建产物/pyc/IDE 配置"]
     B2 --> C["创建 ARCHIVE.md\n标准化字段"]
     C --> D["更新根 README\n项目清单"]
-    D --> E["git commit\narchive: import ..."]
+    D --> G["同步展示站\nshowcase/_posts 中英两篇"]
+    G --> E["git commit\narchive: import ..."]
     E --> F["git push\n触发归档"]
 ```
 
-### 六步走
+### 七步走
 
 | 步骤 | 动作 | 关键点 |
 | :---: | --- | --- |
@@ -198,7 +201,8 @@ flowchart LR
 | **3** | **归档前清理** | 剔除 venv / node_modules / 构建产物 / `__pycache__` / `.idea` / 本地数据库等禁止入库文件,确认子项目 `.gitignore`(清单见 [`AGENTS.md`](./AGENTS.md) §3.1) |
 | **4** | **写 `ARCHIVE.md`** | 在子项目根目录新建,字段参考 `AGENTS.md` §2.2(名称 / 简介 / 技术栈 / 学习重点 / 状态 / 来源) |
 | **5** | **更新根 README** | 在「项目清单」表格中追加一行,并按场景分组;若涉及真实凭证,在简介中显式标注「已脱敏」 |
-| **6** | **提交并推送** | commit message 遵循 Conventional Commits:`archive: import <project-name> from <source-url>` |
+| **6** | **同步展示站** | 在 `showcase/_posts/` 新增该项目的**中英两篇文章**,front matter 与素材规范见 `AGENTS.md` §2.3 |
+| **7** | **提交并推送** | commit message 遵循 Conventional Commits:`archive: import <project-name> from <source-url>` |
 
 ---
 

@@ -61,7 +61,8 @@
 3. 归档前清理:剔除 venv / node_modules / 构建产物 / `__pycache__` / `.idea` / 本地数据库等禁止入库文件(清单见 `AGENTS.md` §3.1),确认或补充子项目 `.gitignore`
 4. 在子项目根目录新建 `ARCHIVE.md`,字段见 `AGENTS.md` §2.2
 5. 更新根 `README.md` 的项目清单
-6. 用 `archive: import <name> from <url>` 提交
+6. 同步展示站:在 `showcase/_posts/` 新增中英两篇文章,front matter 与素材规范见 `AGENTS.md` §2.3(展示站设计见 `showcase/docs/DESIGN.md`)
+7. 用 `archive: import <name> from <url>` 提交
 
 ### 4.3 用户说"在归档项目里改个 bug"
 
