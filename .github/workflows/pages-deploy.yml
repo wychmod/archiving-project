@@ -60,9 +60,18 @@ jobs:
       - name: Test site
         run: |
           gem install html-proofer -v '~> 5.0' --no-document
+          set +e
           htmlproofer "$RUNNER_ROOT/_site${{ steps.pages.outputs.base_path }}" \
             \-\-disable-external \
-            \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/"
+            \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/" \
+            > /tmp/proofer.log 2>&1
+          status=$?
+          set -e
+          if [ "$status" != "0" ]; then
+            grep -E '(- |HTML-Proofer|failures|Error)' /tmp/proofer.log | head -40 | sed 's/^/::error::/'
+            tail -5 /tmp/proofer.log | sed 's/^/::error::/'
+            exit "$status"
+          fi
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v5
