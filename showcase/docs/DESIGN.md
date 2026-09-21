@@ -141,8 +141,9 @@ description: 一句话摘要(出现在卡片与 SEO meta)
 **文件名规范**:`showcase/_posts/YYYY-MM-DD-<ref>-zh.md` 与 `showcase/_posts/YYYY-MM-DD-<ref>-en.md`,
 日期取该项目的归档日期(`git log` 中 `archive:` 提交的日期)。
 
-**排序稳定性**:中文篇 `date` 用 `10:00:00`,英文篇用 `09:00:00`(同一天)。首页按时间倒序时
+**排序稳定性**:同一项目里中文篇 `date` 必须晚于英文篇(同一天),首页按时间倒序时
 每个项目固定"中文卡片在前、英文卡片紧随其后",避免同秒导致顺序随机。
+**时间必须早于推送构建时刻**:Jekyll 4.4 默认 `future: false`,未来日期的文章会被静默跳过不上线。
 
 ### 4.3 UI 语言包
 
@@ -190,13 +191,16 @@ description: 一句话摘要(出现在卡片与 SEO meta)
 
 ---
 
-## 6. 内容规划(11 个项目 × 2 语言 = 22 篇)
+## 6. 内容规划(12 个项目 × 2 语言 = 24 篇)
 
 ### 6.1 分类(两侧同构)
 
+> 实际写法以现有文章 front matter 为准:`AI / LLM 应用` / `AI / LLM`(注意不要用 `AI & LLM`,
+> 它与 `AI / LLM` slugify 后同为 `ai-llm`,会造成 jekyll-archives 目标路径冲突)。
+
 | 分类(中) | Category(EN) | 项目 |
 | --- | --- | --- |
-| AI 与 LLM 应用 | AI & LLM | ChatGPT-Next-Web · TokenBridge |
+| AI / LLM 应用 | AI / LLM | ChatGPT-Next-Web · TokenBridge |
 | 全栈练手 | Full-stack Practice | ToDoList · 1802axf · bolg |
 | 企业级架构 | Enterprise Architecture | wiki · Lottery · db-router-springboot-starter · cloud-short-link |
 | 工具与垂直领域 | Tools & Verticals | huawei-alarm · ascvd · ESContentGen |
@@ -248,7 +252,8 @@ description: 一句话摘要(出现在卡片与 SEO meta)
 | Chirpy 需要 JS/CSS 构建产物 | 官方 Starter 默认跑 `npm run build` | 选用 gem 内置的预编译资源,工作流不跑 npm;若个别资源缺失,固定主题版本并回收构建步骤 |
 | `google_fonts` 外链在部分网络环境慢 | 首屏字体加载慢 | 保留默认(与 Demo 一致);如需自托管再切换 theme 的 `assets.self_host` 开关 |
 | 覆盖 `sidebar.html` 与样式表带来的升级成本 | 主题升级需 diff | 与主题版本一起锁定在 Gemfile;升级时用本文件 §5.2 的挂载点清单核对(两处:`sidebar.html` 的 include 行、scss 末尾的 custom 段) |
-| 中英文章同日发布 | 首页卡片顺序不稳定 | 中文篇 `10:00:00`、英文篇 `09:00:00`(中文在前、英文紧随,见 §4.2) |
+| 中英文章同日发布 | 首页卡片顺序不稳定 | 同日内中文篇 `date` 晚于英文篇(中文在前、英文紧随,见 §4.2) |
+| 文章 `date` 晚于构建时刻 | 文章被静默跳过不上线(Jekyll 4.4 默认 `future: false`) | 时间取归档当日已过去的时间,推送前先核对 |
 | Pages 首次部署需人工开启 | 站点 404 | §3.2 已列一次性操作 |
 | 归档项目里可能存在 `_posts`/`_config.yml` 同名文件 | Jekyll source 污染 | source 限定 `showcase/`,归档目录不在构建范围内;`exclude` 再加一道保险 |
 

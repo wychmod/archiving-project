@@ -1,11 +1,11 @@
 ---
 title: TokenBridge · Local AI Gateway & Routing Control Plane
-date: 2026-09-22 09:00:00 +0800
+date: 2026-09-22 00:00:00 +0800
 lang: en
 ref: TokenBridge
-categories: [AI & LLM]
+categories: [AI / LLM]
 tags: [Go, Wails, AI Gateway, React, Failover]
-description: A local AI gateway management platform: OpenAI / Anthropic compatible endpoints, Local Key credential isolation, model-alias routing with Provider/Fallback Chains and automatic failover, a React observability console, and Wails desktop distribution as a single binary
+description: A local AI gateway management platform — OpenAI / Anthropic compatible endpoints, Local Key credential isolation, model-alias routing with Provider/Fallback Chains and automatic failover, a React observability console, and Wails desktop distribution as a single binary
 ---
 
 ## Overview

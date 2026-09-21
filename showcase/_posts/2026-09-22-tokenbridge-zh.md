@@ -1,9 +1,9 @@
 ---
 title: TokenBridge · 本地 AI 网关与路由控制平面
-date: 2026-09-22 10:00:00 +0800
+date: 2026-09-22 00:30:00 +0800
 lang: zh-CN
 ref: TokenBridge
-categories: [AI 与 LLM 应用]
+categories: [AI / LLM 应用]
 tags: [Go, Wails, AI 网关, React, 故障转移]
 description: 本地 AI 网关管理平台:OpenAI / Anthropic 双协议兼容接口,Local Key 密钥隔离,模型别名 + Provider/Fallback Chain 路由与自动故障转移,React 可观测控制台,Wails 桌面版单二进制分发
 ---
