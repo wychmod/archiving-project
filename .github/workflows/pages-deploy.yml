@@ -52,7 +52,7 @@ jobs:
           working-directory: showcase
 
       - name: Build site
-        run: bundle exec jekyll b -d "$RUNNER_ROOT/_site${{ steps.pages.outputs.base_path }}"
+        run: bundle exec jekyll b --baseurl "${{ steps.pages.outputs.base_path }}" -d "$RUNNER_ROOT/_site${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: "production"
           RUNNER_ROOT: ${{ github.workspace }}
