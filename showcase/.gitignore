@@ -1,0 +1,31 @@
+# Bundler cache
+.bundle
+vendor
+
+# Generated site output
+_site
+
+# Jekyll cache
+.jekyll-cache
+.jekyll-metadata
+
+# RubyGems
+*.gem
+
+# NPM dependencies
+node_modules
+package-lock.json
+
+# IDE & editor
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# Misc
+_sass/vendors
+assets/js/dist
+*~
+.DS_Store
+Thumbs.db

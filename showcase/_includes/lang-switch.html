@@ -1,0 +1,31 @@
+{%- comment -%}
+  Lightweight bilingual switch entry (sidebar footer).
+  For a post with a `ref`, link to the counterpart post in the other language;
+  for pages without a counterpart (e.g. About), fall back to that language's home.
+{%- endcomment -%}
+{%- assign current_lang = page.lang | default: site.lang -%}
+{%- if current_lang == 'zh-CN' -%}
+  {%- assign other_lang = 'en' -%}
+  {%- assign other_label = 'EN' -%}
+  {%- assign fallback_url = '/' -%}
+{%- else -%}
+  {%- assign other_lang = 'zh-CN' -%}
+  {%- assign other_label = '中文' -%}
+  {%- assign fallback_url = '/' -%}
+{%- endif -%}
+{%- assign target_url = fallback_url -%}
+{%- if page.ref -%}
+  {%- for _p in site.posts -%}
+    {%- if _p.ref == page.ref and _p.lang == other_lang -%}
+      {%- assign target_url = _p.url -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+<div class="lang-switch text-center mt-3">
+  <a
+    href="{{ target_url | relative_url }}"
+    aria-label="Switch language to {{ other_lang }}"
+    title="Switch language to {{ other_lang }}"
+  >{{ other_label }}</a>
+</div>
