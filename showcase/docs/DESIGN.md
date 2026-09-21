@@ -83,16 +83,18 @@ archiving-project/
   **本地预览不追加**(`_config.yml` 保持 `baseurl: ""`,资源路径一律走 `relative_url`,两种环境自适应)
 - 部署:`actions/deploy-pages`,以 artifact 方式发布(GitHub Pages 的 "GitHub Actions" 源)
 
-### 3.2 一次性人工操作(仅一次,无法由代码代劳)
+### 3.2 一次性人工操作(已完成后记录)
 
-1. 仓库 Settings → Pages → Source 选择 **GitHub Actions**
+1. 仓库 Settings → Pages → Source 选择 **GitHub Actions** ✅(2026-09-21)
 2. 首次 push 后到 Actions 标签页确认工作流运行成功
 3. 访问 https://wychmod.github.io/archiving-project/ 验证
+
+> 注:首次部署曾因 Pages 开关晚于 push 打开而失败一次("Setup Pages" 步骤),重触发构建后即成功——属预期时序现象,非配置问题。
 
 ### 3.3 部署边界
 
 - 站点是公开的,与归档仓库公开状态一致
-- 归档仓库根 `README.md` 会新增一段"在线展示页"链接(一行),这是站点上线后唯一需要动的既有文件(经你确认后改)
+- 归档仓库根 `README.md` 的「快速跳转」导航条新增"在线展示站"链接(一行),已完成
 
 ---
 
