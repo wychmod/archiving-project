@@ -1,0 +1,24 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "tokenbridge",
+  "outputfilename": "TokenBridge",
+  "frontend:dir": "web/admin",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build:wails",
+  "frontend:dev:watcher": "npm run dev:wails",
+  "frontend:dev:serverUrl": "http://127.0.0.1:5174",
+  "assetdir": "web/admin/dist",
+  "wailsjsdir": "web/admin/src",
+  "viteServerTimeout": 15,
+  "author": {
+    "name": "TokenBridge Team",
+    "email": "team@tokenbridge.dev"
+  },
+  "info": {
+    "companyName": "TokenBridge",
+    "productName": "TokenBridge",
+    "productVersion": "2.0.0",
+    "copyright": "Copyright TokenBridge Team",
+    "comments": "TokenBridge 本地模型网关桌面版"
+  }
+}

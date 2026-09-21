@@ -1,0 +1,665 @@
+package aitoolusage
+
+import (
+	"archive/zip"
+	"bytes"
+	"context"
+	"io"
+	"math"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/glebarez/sqlite"
+	"github.com/rs/zerolog"
+	"gorm.io/gorm"
+
+	"tokenbridge/internal/models"
+	"tokenbridge/internal/pricing"
+)
+
+func TestParseUsageFileExtractsNestedClaudeUsage(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "session.jsonl")
+	body := `{"session_id":"s1","cwd":"D:\\repo\\tokenbridge","message":{"id":"m1","model":"claude-3-5-sonnet","usage":{"input_tokens":1000,"output_tokens":200,"cache_creation_input_tokens":100,"cache_read_input_tokens":300}},"timestamp":"2026-05-12T10:00:00Z"}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	records, err := parseUsageFile("Claude Code", path, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(records))
+	}
+	record := records[0]
+	if record.Model != "claude-3-5-sonnet" || record.InputTokens != 1400 || record.OutputTokens != 200 {
+		t.Fatalf("unexpected record: %+v", record)
+	}
+	if record.TotalTokens != 1600 {
+		t.Fatalf("expected normalized total tokens to include cache, got %+v", record)
+	}
+	if record.CacheCreationTokens != 100 || record.CacheReadTokens != 300 {
+		t.Fatalf("unexpected cache tokens: %+v", record)
+	}
+	if record.ProjectName != "tokenbridge" {
+		t.Fatalf("unexpected project name: %s", record.ProjectName)
+	}
+}
+
+func TestParseUsageFileUsesCodexLastTokenUsage(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "codex.jsonl")
+	body := `{"timestamp":"2026-05-12T04:40:08.746Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":4390495,"cached_input_tokens":4133504,"output_tokens":29672,"total_tokens":4420167},"last_token_usage":{"input_tokens":145242,"cached_input_tokens":144768,"output_tokens":438,"total_tokens":145680}}}}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	records, err := parseUsageFile("Codex", path, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected 1 record, got %d: %+v", len(records), records)
+	}
+	record := records[0]
+	if record.InputTokens != 145242 || record.OutputTokens != 438 || record.TotalTokens != 145680 {
+		t.Fatalf("expected last_token_usage, got %+v", record)
+	}
+	if record.CacheReadTokens != 144768 {
+		t.Fatalf("expected cached_input_tokens to be cache read tokens, got %+v", record)
+	}
+}
+
+func TestParseUsageFileCarriesCodexContextAcrossLines(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "codex.jsonl")
+	body := `{"timestamp":"2026-05-12T04:00:00Z","type":"turn_context","payload":{"cwd":"D:\\idea\\tokenbridge","model":"gpt-5.4"}}` + "\n" +
+		`{"timestamp":"2026-05-12T04:01:00Z","type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":1000,"cached_input_tokens":300,"output_tokens":200,"total_tokens":1200}}}}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	records, err := parseUsageFile("Codex", path, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected 1 record, got %d: %+v", len(records), records)
+	}
+	record := records[0]
+	if record.Model != "gpt-5.4" {
+		t.Fatalf("expected model from prior context line, got %+v", record)
+	}
+	if record.ProjectName != "tokenbridge" {
+		t.Fatalf("expected project from prior context line, got %+v", record)
+	}
+	if record.InputTokens != 1000 || record.CacheReadTokens != 300 {
+		t.Fatalf("unexpected token normalization for cached Codex usage: %+v", record)
+	}
+}
+
+func TestBuildRecordIDForLineLogsIgnoresEnrichedModel(t *testing.T) {
+	base := parsedRecord{
+		Tool:         "Codex",
+		SourcePath:   filepath.Join(t.TempDir(), "session.jsonl"),
+		SourceOffset: 128,
+		InputTokens:  1000,
+		OutputTokens: 200,
+		OccurredAt:   time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC),
+		Model:        "unknown",
+	}
+	enriched := base
+	enriched.Model = "gpt-5.4"
+	if buildRecordID(base) != buildRecordID(enriched) {
+		t.Fatal("line-log record id should remain stable when parser later enriches model context")
+	}
+}
+
+func TestScanFileIsIdempotent(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	db.Create(&models.ModelPricing{
+		ModelID:                   "gpt-5",
+		Mode:                      "chat",
+		InputCostPerToken:         1.0 / 1_000_000,
+		OutputCostPerToken:        2.0 / 1_000_000,
+		CacheCreationCostPerToken: 0.5 / 1_000_000,
+		CacheReadCostPerToken:     0.1 / 1_000_000,
+		FetchedAt:                 now,
+	})
+
+	path := filepath.Join(t.TempDir(), "codex.jsonl")
+	body := `{"request_id":"r1","session_id":"s1","model":"gpt-5","input_tokens":1000,"output_tokens":100,"cache_read_input_tokens":400,"cwd":"D:\\repo\\x","timestamp":"2026-05-12T10:00:00Z"}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 1 || created != 1 {
+		t.Fatalf("first scan found=%d created=%d", found, created)
+	}
+	_, found, created, err = svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 0 || created != 0 {
+		t.Fatalf("unchanged second scan should skip, found=%d created=%d", found, created)
+	}
+	var count int64
+	db.Model(&models.AICodingUsageRecord{}).Count(&count)
+	if count != 1 {
+		t.Fatalf("expected exactly one usage row, got %d", count)
+	}
+	var row models.AICodingUsageRecord
+	if err := db.First(&row).Error; err != nil {
+		t.Fatal(err)
+	}
+	if row.InputTokens != 1400 {
+		t.Fatalf("expected separate cache input tokens to be normalized, got %d", row.InputTokens)
+	}
+	if math.Abs(row.TotalCostUSD-0.00124) > 0.00000001 {
+		t.Fatalf("unexpected cache-aware cost: %.8f", row.TotalCostUSD)
+	}
+}
+
+func TestScanFileAppendOnlyCreatesNewRows(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	db.Create(&models.ModelPricing{
+		ModelID:            "gpt-5",
+		Mode:               "chat",
+		InputCostPerToken:  1.0 / 1_000_000,
+		OutputCostPerToken: 2.0 / 1_000_000,
+		FetchedAt:          now,
+	})
+
+	path := filepath.Join(t.TempDir(), "codex.jsonl")
+	first := `{"request_id":"r1","session_id":"s1","model":"gpt-5","input_tokens":1000,"output_tokens":100,"cwd":"D:\\repo\\x","timestamp":"2026-05-12T10:00:00Z"}` + "\n"
+	if err := os.WriteFile(path, []byte(first), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 1 || created != 1 {
+		t.Fatalf("first scan found=%d created=%d", found, created)
+	}
+
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = file.WriteString(`{"request_id":"r2","session_id":"s1","model":"gpt-5","input_tokens":2000,"output_tokens":200,"cwd":"D:\\repo\\x","timestamp":"2026-05-12T11:00:00Z"}` + "\n")
+	if closeErr := file.Close(); closeErr != nil && err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, found, created, err = svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 2 || created != 1 {
+		t.Fatalf("append scan should parse both rows but create only one new row, found=%d created=%d", found, created)
+	}
+	var count int64
+	db.Model(&models.AICodingUsageRecord{}).Count(&count)
+	if count != 2 {
+		t.Fatalf("expected two usage rows after append, got %d", count)
+	}
+}
+
+func TestScanFileDedupesRepeatedCodexTokenCountSnapshots(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	db.Create(&models.ModelPricing{
+		ModelID:            "gpt-5.5",
+		Mode:               "chat",
+		InputCostPerToken:  1.0 / 1_000_000,
+		OutputCostPerToken: 2.0 / 1_000_000,
+		FetchedAt:          now,
+	})
+
+	path := filepath.Join(t.TempDir(), "codex.jsonl")
+	duplicateSnapshot := `{"timestamp":"2026-05-12T04:00:00Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":1000,"cached_input_tokens":500,"output_tokens":100,"total_tokens":1100},"last_token_usage":{"input_tokens":1000,"cached_input_tokens":500,"output_tokens":100,"total_tokens":1100}}}}`
+	body := `{"timestamp":"2026-05-12T03:59:00Z","type":"turn_context","payload":{"cwd":"D:\\idea\\tokenbridge","model":"gpt-5.5","session_id":"s1"}}` + "\n" +
+		duplicateSnapshot + "\n" +
+		strings.Replace(duplicateSnapshot, "04:00:00Z", "04:00:05Z", 1) + "\n" +
+		`{"timestamp":"2026-05-12T04:01:00Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":2200,"cached_input_tokens":1500,"output_tokens":300,"total_tokens":2500},"last_token_usage":{"input_tokens":1200,"cached_input_tokens":1000,"output_tokens":200,"total_tokens":1400}}}}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 3 || created != 2 {
+		t.Fatalf("expected 3 parsed snapshots but only 2 created usage rows, found=%d created=%d", found, created)
+	}
+	var count int64
+	db.Model(&models.AICodingUsageRecord{}).Count(&count)
+	if count != 2 {
+		t.Fatalf("expected duplicate token_count snapshot to be stored once, got %d rows", count)
+	}
+}
+
+func TestScanFileUsesFileModTimeWhenUsageTimestampMissing(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	scanTime := time.Date(2026, 5, 20, 1, 0, 0, 0, time.Local)
+	fileTime := time.Date(2026, 5, 9, 23, 59, 0, 0, time.Local)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return scanTime }
+
+	path := filepath.Join(t.TempDir(), "trace.json")
+	body := `{"model":"MiniMax-M2.7","usage":{"input_tokens":1000,"output_tokens":200,"total_tokens":1200},"session_id":"s1"}`
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(path, fileTime, fileTime); err != nil {
+		t.Fatal(err)
+	}
+
+	_, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "WorkBuddy", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 1 || created != 1 {
+		t.Fatalf("expected one usage row, found=%d created=%d", found, created)
+	}
+	var row models.AICodingUsageRecord
+	if err := db.First(&row).Error; err != nil {
+		t.Fatal(err)
+	}
+	if !row.OccurredAt.Equal(fileTime) {
+		t.Fatalf("expected missing usage timestamp to fall back to file modtime %s, got %s", fileTime, row.OccurredAt)
+	}
+}
+
+func TestScanFileDedupesWorkBuddyRawUsageByProviderMessage(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 20, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	path := filepath.Join(t.TempDir(), "workbuddy.jsonl")
+	first := `{"id":"resp_a","timestamp":1778426956835,"type":"function_call","providerData":{"messageId":"msg_1","traceId":"trace_1","conversationRequestId":"conv_1","model":"gpt-5.5","rawUsage":{"prompt_tokens":30144,"completion_tokens":550,"total_tokens":30694,"prompt_tokens_details":{"cached_tokens":28672},"completion_tokens_details":{"reasoning_tokens":128}}}}`
+	second := strings.Replace(first, `"resp_a"`, `"resp_b"`, 1)
+	if err := os.WriteFile(path, []byte(first+"\n"+second+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "WorkBuddy", path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if found != 2 || created != 1 {
+		t.Fatalf("expected duplicate WorkBuddy rawUsage to create one row, found=%d created=%d", found, created)
+	}
+	var row models.AICodingUsageRecord
+	if err := db.First(&row).Error; err != nil {
+		t.Fatal(err)
+	}
+	if row.ReasoningTokens != 128 || row.EventKey == "" {
+		t.Fatalf("expected reasoning tokens and stable event key, got %+v", row)
+	}
+}
+
+func TestScanFileDedupesStableEventKeyAcrossSources(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 20, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	firstPath := filepath.Join(t.TempDir(), "workbuddy-a.jsonl")
+	secondPath := filepath.Join(t.TempDir(), "workbuddy-b.jsonl")
+	event := `{"timestamp":"2026-05-20T10:00:00Z","providerData":{"messageId":"msg_same","model":"gpt-5.5","rawUsage":{"prompt_tokens":1000,"completion_tokens":100,"total_tokens":1100}}}`
+	if err := os.WriteFile(firstPath, []byte(event+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(secondPath, []byte(event+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "WorkBuddy", path: firstPath}); err != nil || found != 1 || created != 1 {
+		t.Fatalf("first scan found=%d created=%d err=%v", found, created, err)
+	}
+	if _, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "WorkBuddy", path: secondPath}); err != nil || found != 1 || created != 0 {
+		t.Fatalf("second scan should upsert the same event key, found=%d created=%d err=%v", found, created, err)
+	}
+
+	var count int64
+	db.Model(&models.AICodingUsageRecord{}).Count(&count)
+	if count != 1 {
+		t.Fatalf("expected same tool + event_key to be stored once across sources, got %d rows", count)
+	}
+	groups, duplicates := svc.duplicateAudit(context.Background())
+	if groups != 0 || duplicates != 0 {
+		t.Fatalf("expected duplicate audit to be clean, groups=%d duplicates=%d", groups, duplicates)
+	}
+}
+
+func TestCleanupStoredRecordsDropsExistingDuplicateEventKeys(t *testing.T) {
+	db := openTestDB(t)
+	svc := NewService(db, pricing.NewService(db, zerolog.Nop()), zerolog.Nop())
+	now := time.Date(2026, 5, 20, 10, 0, 0, 0, time.UTC)
+	rows := []models.AICodingUsageRecord{
+		{ID: "old", Tool: "Codex", EventKey: "same-event", TotalTokens: 100, OccurredAt: now.Add(-time.Minute), CreatedAt: now.Add(-time.Minute)},
+		{ID: "new", Tool: "Codex", EventKey: "same-event", TotalTokens: 200, OccurredAt: now, CreatedAt: now},
+	}
+	if err := db.Create(&rows).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	dropped := svc.cleanupStoredRecords(context.Background())
+	if dropped == 0 {
+		t.Fatal("expected cleanup to drop older duplicate event_key row")
+	}
+
+	var remaining []models.AICodingUsageRecord
+	if err := db.Find(&remaining).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(remaining) != 1 || remaining[0].ID != "new" {
+		t.Fatalf("expected highest-token duplicate to remain, got %+v", remaining)
+	}
+}
+
+func TestParseUsageFileTreatsNaiveTimestampAsBeijingTime(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "usage.jsonl")
+	body := `{"model":"gpt-5","usage":{"input_tokens":100,"output_tokens":20,"total_tokens":120},"timestamp":"2026-05-20 00:30:00"}` + "\n"
+	if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	records, err := parseUsageFile("WorkBuddy", path, time.Date(2026, 5, 21, 1, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != 1 {
+		t.Fatalf("expected one record, got %d", len(records))
+	}
+	wantUTC := time.Date(2026, 5, 19, 16, 30, 0, 0, time.UTC)
+	if !records[0].OccurredAt.Equal(wantUTC) || records[0].TimeSource != "timestamp" {
+		t.Fatalf("expected Beijing naive timestamp to become %s, got %s source=%s", wantUTC, records[0].OccurredAt, records[0].TimeSource)
+	}
+}
+
+func TestIsLogFileRejectsGenericHistoryJSON(t *testing.T) {
+	if isLogFile(filepath.Join("C:\\Users\\me\\AppData\\Roaming\\Qoder\\User\\History\\-abc", "5g4e.json")) {
+		t.Fatal("generic history JSON should not be treated as a usage log")
+	}
+	if !isLogFile(filepath.Join("C:\\Users\\me\\.workbuddy", "usage.json")) {
+		t.Fatal("explicit usage JSON should still be treated as a usage log")
+	}
+	if !isLogFile(filepath.Join("C:\\Users\\me\\.codex", "history.jsonl")) {
+		t.Fatal("JSONL history logs should still be scanned")
+	}
+}
+
+func TestScanFileRewriteReplacesStaleSourceRows(t *testing.T) {
+	db := openTestDB(t)
+	priceService := pricing.NewService(db, zerolog.Nop())
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC)
+	svc := NewService(db, priceService, zerolog.Nop())
+	svc.nowFunc = func() time.Time { return now }
+
+	db.Create(&models.ModelPricing{
+		ModelID:            "gpt-5",
+		Mode:               "chat",
+		InputCostPerToken:  1.0 / 1_000_000,
+		OutputCostPerToken: 2.0 / 1_000_000,
+		FetchedAt:          now,
+	})
+
+	path := filepath.Join(t.TempDir(), "snapshot.jsonl")
+	first := `{"request_id":"r1","session_id":"s1","model":"gpt-5","input_tokens":1000,"output_tokens":100,"timestamp":"2026-05-12T10:00:00Z"}` + "\n" +
+		`{"request_id":"r2","session_id":"s1","model":"gpt-5","input_tokens":2000,"output_tokens":200,"timestamp":"2026-05-12T11:00:00Z"}` + "\n"
+	if err := os.WriteFile(path, []byte(first), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path}); err != nil || found != 2 || created != 2 {
+		t.Fatalf("first scan found=%d created=%d err=%v", found, created, err)
+	}
+
+	second := `{"request_id":"r2","session_id":"s1","model":"gpt-5","input_tokens":3000,"output_tokens":300,"timestamp":"2026-05-12T11:00:00Z"}` + "\n" +
+		`{"request_id":"r3","session_id":"s1","model":"gpt-5","input_tokens":4000,"output_tokens":400,"timestamp":"2026-05-12T12:00:00Z"}` + "\n"
+	if err := os.WriteFile(path, []byte(second), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rewriteTime := now.Add(time.Minute)
+	if err := os.Chtimes(path, rewriteTime, rewriteTime); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, found, created, err := svc.scanFile(context.Background(), logCandidate{tool: "Codex", path: path}); err != nil || found != 2 || created != 1 {
+		t.Fatalf("rewrite scan found=%d created=%d err=%v", found, created, err)
+	}
+	var rows []models.AICodingUsageRecord
+	if err := db.Order("request_id asc").Find(&rows).Error; err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 2 {
+		t.Fatalf("expected stale r1 to be removed, got %d rows: %+v", len(rows), rows)
+	}
+	if rows[0].RequestID != "r2" || rows[0].InputTokens != 3000 {
+		t.Fatalf("expected r2 to be updated from rewritten source, got %+v", rows[0])
+	}
+	if rows[1].RequestID != "r3" {
+		t.Fatalf("expected r3 to be inserted, got %+v", rows[1])
+	}
+}
+
+func TestDashboardUsesLocalTimeWindowAndBuckets(t *testing.T) {
+	db := openTestDB(t)
+	svc := NewService(db, pricing.NewService(db, zerolog.Nop()), zerolog.Nop())
+	location := time.FixedZone("CST", 8*60*60)
+	svc.nowFunc = func() time.Time {
+		return time.Date(2026, 5, 12, 10, 0, 0, 0, location)
+	}
+
+	if err := db.Create(&models.AICodingUsageRecord{
+		ID:           "utc-evening",
+		Tool:         "Codex",
+		ProjectName:  "tokenbridge",
+		Model:        "gpt-5",
+		InputTokens:  100,
+		OutputTokens: 20,
+		TotalTokens:  120,
+		OccurredAt:   time.Date(2026, 5, 11, 20, 0, 0, 0, time.UTC),
+		CreatedAt:    time.Date(2026, 5, 12, 1, 0, 0, 0, time.UTC),
+	}).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	dashboard, err := svc.Dashboard(context.Background(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dashboard.Summary.TotalRequests != 1 {
+		t.Fatalf("expected UTC evening record in local current-day report, got %d requests", dashboard.Summary.TotalRequests)
+	}
+	if len(dashboard.Trend) != 1 || dashboard.Trend[0].Day != "05-12" || dashboard.Trend[0].Requests != 1 {
+		t.Fatalf("expected local trend bucket 05-12, got %+v", dashboard.Trend)
+	}
+	var foundHour bool
+	for _, point := range dashboard.Heatmap {
+		if point.Day == "05-12" && point.Hour == 4 && point.Requests == 1 {
+			foundHour = true
+			break
+		}
+	}
+	if !foundHour {
+		t.Fatalf("expected local heatmap bucket 05-12 04:00, got %+v", dashboard.Heatmap)
+	}
+}
+
+func TestRealtimeSnapshotSeparatesTodayAndTotal(t *testing.T) {
+	db := openTestDB(t)
+	svc := NewService(db, pricing.NewService(db, zerolog.Nop()), zerolog.Nop())
+	location := time.FixedZone("CST", 8*60*60)
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, location)
+	svc.nowFunc = func() time.Time { return now }
+
+	rows := []models.AICodingUsageRecord{
+		{
+			ID:              "today",
+			Tool:            "Codex",
+			ProjectName:     "tokenbridge",
+			Model:           "gpt-5",
+			InputTokens:     1000,
+			CacheReadTokens: 250,
+			TotalTokens:     1200,
+			TotalCostUSD:    0.25,
+			PricingMatched:  true,
+			OccurredAt:      time.Date(2026, 5, 12, 1, 0, 0, 0, time.UTC),
+			CreatedAt:       now,
+		},
+		{
+			ID:             "yesterday",
+			Tool:           "Claude Code",
+			ProjectName:    "tokenbridge",
+			Model:          "claude",
+			InputTokens:    800,
+			TotalTokens:    900,
+			TotalCostUSD:   0.15,
+			PricingMatched: true,
+			OccurredAt:     time.Date(2026, 5, 11, 1, 0, 0, 0, time.UTC),
+			CreatedAt:      now,
+		},
+		{
+			ID:             "old",
+			Tool:           "Codex",
+			ProjectName:    "archive",
+			Model:          "gpt-4",
+			InputTokens:    200,
+			TotalTokens:    250,
+			TotalCostUSD:   0.20,
+			PricingMatched: true,
+			OccurredAt:     time.Date(2026, 4, 20, 1, 0, 0, 0, time.UTC),
+			CreatedAt:      now,
+		},
+	}
+	if err := db.Create(&rows).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	snapshot, err := svc.RealtimeSnapshot(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if snapshot.Today.TotalRequests != 1 || math.Abs(snapshot.Today.TotalCostUSD-0.25) > 0.000001 {
+		t.Fatalf("expected one today record costing 0.25, got %+v", snapshot.Today)
+	}
+	if snapshot.Total.TotalRequests != 3 || math.Abs(snapshot.Total.TotalCostUSD-0.60) > 0.000001 {
+		t.Fatalf("expected all records in total aggregate, got %+v", snapshot.Total)
+	}
+	if snapshot.Today.CacheHitRate != 0.25 {
+		t.Fatalf("expected today's cache hit rate to use cache/read input ratio, got %f", snapshot.Today.CacheHitRate)
+	}
+	if len(snapshot.Trend) != 7 {
+		t.Fatalf("expected seven-day trend for widget context, got %d", len(snapshot.Trend))
+	}
+	if snapshot.UpdatedAt == "" || !snapshot.LocalOnly {
+		t.Fatalf("expected updated_at and local_only metadata, got %+v", snapshot)
+	}
+}
+
+func TestProjectSpendClearsToolWhenMixed(t *testing.T) {
+	db := openTestDB(t)
+	svc := NewService(db, pricing.NewService(db, zerolog.Nop()), zerolog.Nop())
+	now := time.Date(2026, 5, 12, 10, 0, 0, 0, time.UTC)
+	svc.nowFunc = func() time.Time { return now }
+
+	rows := []models.AICodingUsageRecord{
+		{ID: "codex", Tool: "Codex", ProjectName: "tokenbridge", Model: "gpt-5", InputTokens: 100, TotalTokens: 100, OccurredAt: now, CreatedAt: now},
+		{ID: "claude", Tool: "Claude Code", ProjectName: "tokenbridge", Model: "claude", InputTokens: 100, TotalTokens: 100, OccurredAt: now, CreatedAt: now},
+	}
+	if err := db.Create(&rows).Error; err != nil {
+		t.Fatal(err)
+	}
+	dashboard, err := svc.Dashboard(context.Background(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(dashboard.ProjectSpend) != 1 {
+		t.Fatalf("expected one project row, got %+v", dashboard.ProjectSpend)
+	}
+	if dashboard.ProjectSpend[0].Tool != "" {
+		t.Fatalf("expected mixed-tool project to clear tool label, got %+v", dashboard.ProjectSpend[0])
+	}
+}
+
+func TestExportXLSXProducesWorkbook(t *testing.T) {
+	body, err := exportXLSX(Dashboard{
+		Summary: Summary{TotalRequests: 2, TotalTokens: 3000, TotalCostUSD: 0.0123, LocalOnly: true},
+		Trend:   []TrendPoint{{Day: "05-12", Requests: 2, Tokens: 3000, CostUSD: 0.0123}},
+		ModelRank: []Breakdown{{
+			Name:     "gpt-5",
+			CostUSD:  0.0123,
+			Requests: 2,
+			Tokens:   3000,
+		}},
+	}, 7.2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{}
+	for _, file := range reader.File {
+		handle, err := file.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err := io.ReadAll(handle)
+		_ = handle.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		files[file.Name] = string(data)
+	}
+	if !strings.Contains(files["xl/workbook.xml"], `name="Models"`) {
+		t.Fatalf("workbook should include Models sheet: %s", files["xl/workbook.xml"])
+	}
+	if !strings.Contains(files["xl/worksheets/sheet1.xml"], "total_requests") {
+		t.Fatalf("summary sheet should contain total_requests")
+	}
+}
+
+func openTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&models.ModelPricing{}, &models.AICodingUsageRecord{}, &models.AICodingLogSource{}); err != nil {
+		t.Fatal(err)
+	}
+	return db
+}
