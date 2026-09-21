@@ -28,11 +28,11 @@ ref: about
 
 ## 归档构成
 
-当前收录 **11 个项目**,横跨 8+ 个技术栈,按场景分为四类:
+当前收录 **12 个项目**,横跨 9+ 个技术栈,按场景分为四类:
 
 | 分类 | 项目 |
 | --- | --- |
-| AI / LLM 应用 | ChatGPT-Next-Web |
+| AI / LLM 应用 | ChatGPT-Next-Web · TokenBridge |
 | 全栈练手 | ToDoList · 1802axf · bolg |
 | 企业级 / 中台架构 | wiki · lottery · db-router-springboot-starter · cloud-short-link |
 | 工具 / 垂直领域系统 | huawei-alarm · ascvd · ESContentGen |

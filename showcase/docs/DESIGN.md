@@ -196,7 +196,7 @@ description: 一句话摘要(出现在卡片与 SEO meta)
 
 | 分类(中) | Category(EN) | 项目 |
 | --- | --- | --- |
-| AI 与 LLM 应用 | AI & LLM | ChatGPT-Next-Web |
+| AI 与 LLM 应用 | AI & LLM | ChatGPT-Next-Web · TokenBridge |
 | 全栈练手 | Full-stack Practice | ToDoList · 1802axf · bolg |
 | 企业级架构 | Enterprise Architecture | wiki · Lottery · db-router-springboot-starter · cloud-short-link |
 | 工具与垂直领域 | Tools & Verticals | huawei-alarm · ascvd · ESContentGen |
