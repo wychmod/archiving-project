@@ -1,0 +1,103 @@
+---
+/**
+ * Status stamp — the archive's own vocabulary, rendered as a stamped mark
+ * rather than a parenthetical buried in prose.
+ * Spec: DESIGN-V2 §4.4, §6.6
+ */
+import Icon from './Icon.astro';
+import type { Locale } from '@/data/i18n';
+
+interface Props {
+  status: 'archived' | 'runnable' | 'wip';
+  scrubbed?: boolean;
+  repoCleared?: boolean;
+  locale: Locale;
+  /** Show scrubbed / cleared flags as additional stamps. */
+  showFlags?: boolean;
+  size?: 'sm' | 'md';
+}
+
+const {
+  status,
+  scrubbed = false,
+  repoCleared = false,
+  locale,
+  showFlags = true,
+  size = 'md',
+} = Astro.props;
+
+const LABELS = {
+  archived: { zh: '已归档', en: 'Archived' },
+  runnable: { zh: '可运行', en: 'Runnable' },
+  wip: { zh: '待整理', en: 'Pending' },
+} as const;
+
+const text = LABELS[status][locale];
+---
+
+<span class:list={['stamp', `stamp--${status}`, size === 'sm' && 'stamp--sm']}>
+  <Icon name={status === 'runnable' ? 'check-circle' : 'archive'} size={12} strokeWidth={2} />
+  {text}
+</span>
+
+{
+  showFlags && scrubbed && (
+    <span class:list={['stamp', 'stamp--flag', size === 'sm' && 'stamp--sm']}>
+      <Icon name="shield-check" size={12} strokeWidth={2} />
+      {locale === 'zh' ? '已脱敏' : 'Scrubbed'}
+    </span>
+  )
+}
+
+{
+  showFlags && repoCleared && (
+    <span class:list={['stamp', 'stamp--flag', size === 'sm' && 'stamp--sm']}>
+      <Icon name="alert-triangle" size={12} strokeWidth={2} />
+      {locale === 'zh' ? '原仓库已清空' : 'Upstream cleared'}
+    </span>
+  )
+}
+
+<style>
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-4);
+    height: 24px;
+    padding: 0 var(--sp-8);
+    border: 1px solid var(--accent-500);
+    border-radius: var(--r-sm);
+    background: var(--accent-50);
+    color: var(--accent-800);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .stamp--sm {
+    height: 22px;
+    font-size: 0.6875rem;
+  }
+
+  /* A runnable archive gets the success ramp instead of the copper one. */
+  .stamp--runnable {
+    border-color: var(--success);
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  .stamp--wip {
+    border-color: var(--warning);
+    background: var(--warning-bg);
+    color: var(--warning-text);
+  }
+
+  /* Flags are neutral: they qualify the entry, they do not claim status. */
+  .stamp--flag {
+    border-color: var(--line-strong);
+    background: var(--bg-2);
+    color: var(--text-lo);
+  }
+</style>

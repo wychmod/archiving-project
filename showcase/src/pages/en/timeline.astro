@@ -1,0 +1,12 @@
+---
+/**
+ * Archive timeline (en) — the collection read as a growth history.
+ * Spec: DESIGN-V2 §4.5
+ */
+import TimelineLayout from '@/layouts/TimelineLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('en');
+---
+
+<TimelineLayout locale="en" projects={projects} />

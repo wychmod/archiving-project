@@ -1,0 +1,144 @@
+---
+/**
+ * Timeline page — the archive read as a growth history.
+ * Spec: DESIGN-V2 §4.5
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Timeline from '@/components/Timeline.astro';
+import { t, type Locale } from '@/data/i18n';
+import { groupByPeriod, formatDate, type ProjectRecord } from '@/lib/content';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  projects: ProjectRecord[];
+}
+
+const { locale, projects } = Astro.props;
+const s = t(locale);
+
+const groups = groupByPeriod(projects);
+const oldest = projects[projects.length - 1];
+const newest = projects[0];
+---
+
+<BaseLayout
+  locale={locale}
+  title={s.timeline.title}
+  description={s.timeline.desc}
+  keywords={['时间线', 'timeline', 'archive history']}
+>
+  <div class="page-head">
+    <div class="container container--wide">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href={withBase(locale === 'en' ? '/en/' : '/')}>{s.detail.breadcrumbHome}</a>
+        <span class="crumb__sep" aria-hidden="true">/</span>
+        <span aria-current="page">{s.timeline.title}</span>
+      </nav>
+
+      <h1 class="page-head__title">{s.timeline.title}</h1>
+      <p class="page-head__desc">{s.timeline.desc}</p>
+
+      <dl class="page-head__stats">
+        <div>
+          <dt>{s.stats.projects}</dt>
+          <dd>{projects.length}</dd>
+        </div>
+        <div>
+          <dt>{s.timeline.span}</dt>
+          <dd>
+            {oldest && newest
+              ? `${formatDate(oldest.archivedAt, locale)} → ${formatDate(newest.archivedAt, locale)}`
+              : '—'}
+          </dd>
+        </div>
+        <div>
+          <dt>{s.timeline.latest}</dt>
+          <dd>{newest ? formatDate(newest.archivedAt, locale) : '—'}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="container container--wide timeline-page">
+    <Timeline locale={locale} groups={groups} />
+  </div>
+</BaseLayout>
+
+<style>
+  .page-head {
+    padding-block: var(--sp-32) var(--sp-32);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .crumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-bottom: var(--sp-20);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .crumb a {
+    color: var(--text-lo);
+    text-decoration: none;
+  }
+
+  .crumb a:hover {
+    color: var(--link);
+  }
+
+  .crumb__sep {
+    color: var(--text-placeholder);
+  }
+
+  .page-head__title {
+    font-size: var(--fs-h1);
+    letter-spacing: var(--ls-display-2);
+  }
+
+  .page-head__desc {
+    margin-top: var(--sp-12);
+    max-width: 64ch;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.75;
+  }
+
+  .page-head__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-32);
+    margin: var(--sp-24) 0 0;
+    padding-top: var(--sp-20);
+    border-top: 1px solid var(--line);
+  }
+
+  .page-head__stats div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  .page-head__stats dt {
+    color: var(--text-placeholder);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-caption);
+    text-transform: uppercase;
+  }
+
+  .page-head__stats dd {
+    margin: 0;
+    color: var(--text-hi);
+    font-family: var(--font-mono);
+    font-size: var(--fs-body-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline-page {
+    padding-block: var(--sp-48) 0;
+  }
+</style>

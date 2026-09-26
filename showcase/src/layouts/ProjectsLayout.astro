@@ -1,0 +1,722 @@
+---
+/**
+ * Project index — filterable, two view modes, shareable URLs.
+ *
+ * All 12 projects ship in the HTML, so the page works without JavaScript and
+ * is fully crawlable. Filtering and view switching are progressive
+ * enhancements layered on top client-side.
+ * Spec: DESIGN-V2 §4.3
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Icon from '@/components/Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { CATEGORIES, stackLabel } from '@/data/taxonomy';
+import { getProjects, usedStacks, type ProjectRecord } from '@/lib/content';
+import { withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const s = t(locale);
+
+const projects = await getProjects(locale);
+const stacks = usedStacks(projects).filter((key) => {
+  // Keep the filter bar scannable: only show stack keys used by 2+ projects,
+  // plus the single-use ones that are architecturally meaningful.
+  const count = projects.filter((p) => p.stack.includes(key)).length;
+  return count >= 2;
+});
+
+const statuses: { key: ProjectRecord['status']; label: string }[] = [
+  { key: 'archived', label: s.status.archived },
+  { key: 'runnable', label: s.status.runnable },
+  { key: 'wip', label: s.status.wip },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={s.projects.title}
+  description={s.projects.desc}
+  keywords={['归档项目', 'archive', 'projects', ...stacks.slice(0, 10)]}
+>
+  <div class="page-head">
+    <div class="container container--wide">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href={withBase(locale === 'en' ? '/en/' : '/')}>{s.detail.breadcrumbHome}</a>
+        <span class="crumb__sep" aria-hidden="true">/</span>
+        <span aria-current="page">{s.projects.title}</span>
+      </nav>
+
+      <div class="page-head__row">
+        <div>
+          <h1 class="page-head__title">{s.projects.title}</h1>
+          <p class="page-head__desc">{s.projects.desc}</p>
+        </div>
+        <p class="page-head__count">
+          <strong>{projects.length}</strong>
+          {s.projects.countLabel}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="filterbar" id="filterbar">
+    <div class="container container--wide filterbar__inner">
+      <div class="filterbar__group" role="group" aria-label={s.projects.filterCategory}>
+        <span class="filterbar__label">{s.projects.filterCategory}</span>
+        <button type="button" class="fchip is-on" data-filter="category" data-value="" aria-pressed="true">
+          {s.projects.all}
+        </button>
+        {
+          CATEGORIES.map((cat) => (
+            <button
+              type="button"
+              class="fchip"
+              data-filter="category"
+              data-value={cat.key}
+              aria-pressed="false"
+              style={`--fcolor: var(${cat.colorVar});`}
+            >
+              <span class="fchip__dot" />
+              {cat[locale].label}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="filterbar__group" role="group" aria-label={s.projects.filterStatus}>
+        <span class="filterbar__label">{s.projects.filterStatus}</span>
+        <button type="button" class="fchip is-on" data-filter="status" data-value="" aria-pressed="true">
+          {s.projects.all}
+        </button>
+        {
+          statuses.map((st) => (
+            <button type="button" class="fchip" data-filter="status" data-value={st.key} aria-pressed="false">
+              {st.label}
+            </button>
+          ))
+        }
+      </div>
+
+      <details class="filterbar__more">
+        <summary class="fchip fchip--summary">
+          <Icon name="filter" size={14} />
+          {s.projects.filterStack}
+          <Icon name="chevron-down" size={14} class="fchip__caret" />
+        </summary>
+        <div class="filterbar__panel" role="group" aria-label={s.projects.filterStack}>
+          <button type="button" class="fchip is-on" data-filter="stack" data-value="" aria-pressed="true">
+            {s.projects.all}
+          </button>
+          {
+            stacks.map((key) => (
+              <button type="button" class="fchip" data-filter="stack" data-value={key} aria-pressed="false">
+                {stackLabel(key, locale)}
+              </button>
+            ))
+          }
+        </div>
+      </details>
+
+      <div class="filterbar__spacer"></div>
+
+      <label class="filterbar__sort">
+        <span class="filterbar__label">{s.projects.sortLabel}</span>
+        <select id="sort-select" class="filterbar__select">
+          <option value="archived">{s.projects.sortArchived}</option>
+          <option value="name">{s.projects.sortName}</option>
+        </select>
+      </label>
+
+      <div class="filterbar__views" role="group">
+        <button type="button" class="vbtn is-on" data-view="grid" aria-pressed="true" title={s.projects.viewGrid} aria-label={s.projects.viewGrid}>
+          <Icon name="grid" size={16} />
+        </button>
+        <button type="button" class="vbtn" data-view="list" aria-pressed="false" title={s.projects.viewList} aria-label={s.projects.viewList}>
+          <Icon name="list" size={16} />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container container--wide">
+    <p class="filter-status" id="filter-status" aria-live="polite" hidden>
+      <span data-filter-active-count></span>
+      <button type="button" class="filter-status__clear" data-filter-clear>{s.projects.clearFilters}</button>
+    </p>
+
+    <div class="results" id="results" data-view="grid">
+      <div class="grid grid--3" data-grid>
+        {projects.map((project) => <ProjectCard project={project} locale={locale} />)}
+      </div>
+      <div class="grid grid--list" data-list hidden>
+        {projects.map((project) => <ProjectCard project={project} locale={locale} view="list" />)}
+      </div>
+    </div>
+
+    <div class="empty" id="empty" hidden>
+      <span class="empty__icon"><Icon name="search" size={26} /></span>
+      <h2 class="empty__title">{s.projects.emptyTitle}</h2>
+      <p class="empty__desc">{s.projects.emptyDesc}</p>
+      <button type="button" class="btn btn--secondary" data-filter-clear>{s.projects.emptyAction}</button>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-head {
+    padding-block: var(--sp-40) var(--sp-32);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .crumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-bottom: var(--sp-20);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .crumb a {
+    color: var(--text-lo);
+    text-decoration: none;
+  }
+
+  .crumb a:hover {
+    color: var(--link);
+  }
+
+  .crumb__sep {
+    color: var(--text-placeholder);
+  }
+
+  .page-head__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--sp-16);
+  }
+
+  .page-head__title {
+    font-size: var(--fs-h1);
+    letter-spacing: var(--ls-display-2);
+  }
+
+  .page-head__desc {
+    margin-top: var(--sp-12);
+    max-width: 64ch;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.75;
+  }
+
+  .page-head__count {
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    white-space: nowrap;
+  }
+
+  .page-head__count strong {
+    color: var(--text-hi);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+    margin-right: var(--sp-6);
+  }
+
+  /* ---------- filter bar ---------- */
+  .filterbar {
+    position: sticky;
+    top: var(--nav-h);
+    z-index: var(--z-filter);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg-0) 92%, transparent);
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .filterbar {
+      backdrop-filter: blur(12px) saturate(1.4);
+    }
+  }
+
+  .filterbar__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-8) var(--sp-16);
+    padding-block: var(--sp-12);
+  }
+
+  .filterbar__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-6);
+  }
+
+  .filterbar__label {
+    color: var(--text-placeholder);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-caption);
+    text-transform: uppercase;
+    margin-right: var(--sp-4);
+  }
+
+  .filterbar__spacer {
+    flex: 1;
+    min-width: var(--sp-8);
+  }
+
+  .fchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    height: 32px;
+    padding: 0 var(--sp-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: var(--bg-0);
+    color: var(--text-lo);
+    font-family: inherit;
+    font-size: var(--fs-body-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .fchip:hover {
+    border-color: var(--line-strong);
+    color: var(--text-hi);
+  }
+
+  .fchip.is-on {
+    background: var(--brand-600);
+    border-color: var(--brand-600);
+    color: #fff;
+  }
+
+  :global(:root[data-theme='dark']) .fchip.is-on {
+    color: #0b1220;
+  }
+
+  .fchip__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--fcolor, var(--text-placeholder));
+  }
+
+  .fchip.is-on .fchip__dot {
+    background: currentColor;
+  }
+
+  .fchip--summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .fchip--summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .fchip__caret {
+    transition: transform var(--dur-fast) var(--ease-standard);
+  }
+
+  .filterbar__more[open] .fchip__caret {
+    transform: rotate(180deg);
+  }
+
+  .filterbar__panel {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    margin-top: var(--sp-8);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-6);
+    padding: var(--sp-16);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+    box-shadow: var(--e4);
+    max-height: 340px;
+    overflow-y: auto;
+    z-index: 2;
+  }
+
+  .filterbar__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+  }
+
+  .filterbar__select {
+    height: 32px;
+    padding: 0 var(--sp-8);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-0);
+    color: var(--text);
+    font-family: inherit;
+    font-size: var(--fs-body-sm);
+    cursor: pointer;
+  }
+
+  .filterbar__views {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+  }
+
+  .vbtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 26px;
+    border: none;
+    border-radius: calc(var(--r-md) - 4px);
+    background: transparent;
+    color: var(--text-lo);
+    cursor: pointer;
+  }
+
+  .vbtn.is-on {
+    background: var(--bg-0);
+    color: var(--text-hi);
+    box-shadow: var(--e1);
+  }
+
+  /* ---------- results ---------- */
+  .filter-status {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    margin-top: var(--sp-24);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+  }
+
+  .filter-status__clear {
+    border: none;
+    background: none;
+    padding: 0;
+    color: var(--link);
+    font-family: inherit;
+    font-size: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .results {
+    padding-top: var(--sp-32);
+  }
+
+  .grid--list {
+    gap: var(--sp-12);
+  }
+
+  .results.is-filtering .grid {
+    animation: results-in 180ms var(--ease-standard);
+  }
+
+  @keyframes results-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /*
+   * NOTE: the `[data-hidden]` rule that actually hides filtered-out cards lives
+   * in global.css, not here. The cards are rendered by ProjectCard.astro, so a
+   * scoped selector would compile to `[data-astro-cid-<this layout>][data-hidden]`
+   * and never match them — the filter would update the URL and the counter while
+   * leaving every card on screen.
+   */
+
+  /* ---------- empty ---------- */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-12);
+    padding: var(--sp-96) var(--sp-20);
+    text-align: center;
+  }
+
+  .empty__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    color: var(--text-placeholder);
+  }
+
+  .empty__title {
+    font-size: var(--fs-h3);
+  }
+
+  .empty__desc {
+    max-width: 44ch;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+  }
+
+  @media (max-width: 1099px) {
+    .filterbar__inner {
+      gap: var(--sp-8);
+    }
+
+    .filterbar__sort .filterbar__label {
+      display: none;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .filterbar {
+      position: static;
+    }
+
+    .filterbar__spacer {
+      display: none;
+    }
+
+    .filterbar__views {
+      margin-left: auto;
+    }
+  }
+</style>
+
+<script>
+  type FilterKey = 'category' | 'stack' | 'status';
+
+  const state: Record<FilterKey, string> = { category: '', stack: '', status: '' };
+  let sortMode: 'archived' | 'name' = 'archived';
+  let view: 'grid' | 'list' = 'grid';
+
+  const results = document.getElementById('results');
+  const emptyEl = document.getElementById('empty');
+  const statusEl = document.getElementById('filter-status');
+  const activeCountEl = document.querySelector<HTMLElement>('[data-filter-active-count]');
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+
+  /** Each card knows its own facets, read from data attributes. */
+  interface CardRef {
+    category: HTMLElement;
+    list: HTMLElement;
+    ref: string;
+    name: string;
+    categoryKey: string;
+    stack: string[];
+    status: string;
+    archived: number;
+  }
+
+  function collectCards(): CardRef[] {
+    const gridNodes = [...document.querySelectorAll<HTMLElement>('[data-grid] > *')];
+    const listNodes = [...document.querySelectorAll<HTMLElement>('[data-list] > *')];
+    return gridNodes.map((node, i) => ({
+      category: node,
+      list: listNodes[i],
+      ref: node.dataset.ref ?? '',
+      name: node.dataset.name ?? '',
+      categoryKey: node.dataset.category ?? '',
+      stack: (node.dataset.stack ?? '').split(',').filter(Boolean),
+      status: node.dataset.status ?? '',
+      archived: Number(node.dataset.archived ?? 0),
+    }));
+  }
+
+  const cards = collectCards();
+
+  function applyFilters() {
+    let visible = 0;
+
+    for (const card of cards) {
+      const okCategory = !state.category || card.categoryKey === state.category;
+      const okStack = !state.stack || card.stack.includes(state.stack);
+      const okStatus = !state.status || card.status === state.status;
+      const show = okCategory && okStack && okStatus;
+
+      if (show) visible++;
+      for (const el of [card.category, card.list]) {
+        if (el) el.dataset.hidden = show ? 'false' : 'true';
+      }
+    }
+
+    if (results) results.dataset.count = String(visible);
+    if (emptyEl) emptyEl.hidden = visible > 0;
+    if (results) results.hidden = visible === 0;
+
+    const active = Object.values(state).filter(Boolean).length;
+    if (statusEl) statusEl.hidden = active === 0;
+    if (activeCountEl) {
+      activeCountEl.textContent =
+        (document.documentElement.lang === 'en'
+          ? `${active} filter${active > 1 ? 's' : ''} · ${visible} shown`
+          : `${active} 个筛选条件 · 显示 ${visible} 个`);
+    }
+  }
+
+  function applySort() {
+    const host = results?.querySelector<HTMLElement>('[data-grid]');
+    const listHost = results?.querySelector<HTMLElement>('[data-list]');
+    if (!host || !listHost) return;
+
+    const ordered = [...cards].sort((a, b) =>
+      sortMode === 'name'
+        ? a.name.localeCompare(b.name, document.documentElement.lang)
+        : b.archived - a.archived
+    );
+
+    for (const card of ordered) {
+      host.appendChild(card.category);
+      listHost.appendChild(card.list);
+    }
+  }
+
+  function applyView(next: 'grid' | 'list') {
+    view = next;
+    const gridHost = results?.querySelector<HTMLElement>('[data-grid]');
+    const listHost = results?.querySelector<HTMLElement>('[data-list]');
+    if (gridHost) gridHost.hidden = next !== 'grid';
+    if (listHost) listHost.hidden = next !== 'list';
+
+    document.querySelectorAll<HTMLElement>('[data-view]').forEach((btn) => {
+      const on = btn.dataset.view === next;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+
+    try {
+      localStorage.setItem('ap-view', next);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** Paint the active state of a chip group. */
+  function syncChips() {
+    document.querySelectorAll<HTMLElement>('[data-filter]').forEach((btn) => {
+      const key = btn.dataset.filter as FilterKey;
+      const value = btn.dataset.value ?? '';
+      const on = state[key] === value;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  }
+
+  function syncUrl() {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(state)) {
+      if (value) params.set(key, value);
+    }
+    if (sortMode !== 'archived') params.set('sort', sortMode);
+    if (view !== 'grid') params.set('view', view);
+
+    const query = params.toString();
+    const url = `${window.location.pathname}${query ? `?${query}` : ''}`;
+    window.history.replaceState(null, '', url);
+  }
+
+  function readUrl() {
+    const params = new URLSearchParams(window.location.search);
+    for (const key of ['category', 'stack', 'status'] as FilterKey[]) {
+      state[key] = params.get(key) ?? '';
+    }
+    const sort = params.get('sort');
+    if (sort === 'name' || sort === 'archived') sortMode = sort;
+    const v = params.get('view');
+    if (v === 'grid' || v === 'list') view = v;
+  }
+
+  function announce() {
+    if (results) {
+      results.classList.remove('is-filtering');
+      void results.offsetWidth;
+      results.classList.add('is-filtering');
+    }
+  }
+
+  // ---- events -----------------------------------------------------------
+  document.querySelectorAll<HTMLElement>('[data-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.filter as FilterKey;
+      state[key] = btn.dataset.value ?? '';
+      syncChips();
+      applyFilters();
+      syncUrl();
+      announce();
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-filter-clear]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.category = '';
+      state.stack = '';
+      state.status = '';
+      syncChips();
+      applyFilters();
+      syncUrl();
+      announce();
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-view]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const next = (btn.dataset.view as 'grid' | 'list') ?? 'grid';
+      applyView(next);
+      syncUrl();
+    });
+  });
+
+  sortSelect?.addEventListener('change', () => {
+    sortMode = sortSelect.value === 'name' ? 'name' : 'archived';
+    applySort();
+    syncUrl();
+    announce();
+  });
+
+  window.addEventListener('popstate', () => {
+    readUrl();
+    syncChips();
+    applySort();
+    applyFilters();
+    applyView(view);
+  });
+
+  // ---- init -------------------------------------------------------------
+  readUrl();
+  if (!new URLSearchParams(window.location.search).has('view')) {
+    try {
+      const stored = localStorage.getItem('ap-view');
+      if (stored === 'list') view = 'list';
+    } catch {
+      /* ignore */
+    }
+  }
+  if (sortSelect) sortSelect.value = sortMode;
+  syncChips();
+  applySort();
+  applyFilters();
+  applyView(view);
+  syncUrl();
+</script>

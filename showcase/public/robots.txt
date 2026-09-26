@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# The old Jekyll site declared a /norobots/ prefix; the rebuild has no such
+# path, so nothing is disallowed. Sitemap points at the generated index.
+Sitemap: https://wychmod.github.io/archiving-project/sitemap-index.xml

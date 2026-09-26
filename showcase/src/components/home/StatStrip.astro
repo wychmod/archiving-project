@@ -1,0 +1,91 @@
+---
+/**
+ * Stat strip — four counters that sit under the hero.
+ * Spec: DESIGN-V2 §4.2 (block B)
+ */
+import { t, type Locale } from '@/data/i18n';
+
+interface Props {
+  locale: Locale;
+  projectCount: number;
+  stackCount: number;
+  docCount: number;
+}
+
+const { locale, projectCount, stackCount, docCount } = Astro.props;
+const s = t(locale);
+
+const stats = [
+  { value: String(projectCount), label: s.stats.projects },
+  { value: `${stackCount}+`, label: s.stats.stacks },
+  { value: String(docCount), label: s.stats.docs },
+  { value: s.stats.langValue, label: s.stats.languages },
+];
+---
+
+<section class="stats">
+  <div class="container container--wide">
+    <dl class="stats__grid">
+      {
+        stats.map((stat) => (
+          <div class="stats__item">
+            <dt class="stats__value">{stat.value}</dt>
+            <dd class="stats__label">{stat.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .stats {
+    margin-top: calc(var(--sp-32) * -1);
+    padding-bottom: var(--sp-8);
+  }
+
+  .stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--line);
+    overflow: hidden;
+    box-shadow: var(--e2);
+  }
+
+  .stats__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    padding: var(--sp-24);
+    background: var(--bg-0);
+  }
+
+  .stats__value {
+    color: var(--text-hi);
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    font-weight: var(--fw-bold);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stats__label {
+    margin: 0;
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  @media (max-width: 767px) {
+    .stats__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stats__item {
+      padding: var(--sp-16);
+    }
+  }
+</style>

@@ -1,0 +1,544 @@
+---
+/**
+ * Top navigation — the site's only global chrome.
+ *
+ * Desktop: wordmark, five primary links with a sliding indicator, then search,
+ * language, theme and GitHub. Mobile: wordmark, search, a full-screen drawer.
+ * Spec: DESIGN-V2 §3.2, §4.1, §7.2
+ */
+import Icon from './Icon.astro';
+import LangSwitch from './LangSwitch.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import { t, type Locale } from '@/data/i18n';
+import {
+  aboutPath,
+  homePath,
+  projectsPath,
+  stackPath,
+  timelinePath,
+  withBase,
+} from '@/lib/url';
+import { REPO_URL } from '@/data/taxonomy';
+
+interface Props {
+  locale: Locale;
+  /** Path of the same page in the other locale. */
+  counterpart: string;
+  /** Current pathname, for marking the active nav item. */
+  currentPath: string;
+}
+
+const { locale, counterpart, currentPath } = Astro.props;
+const s = t(locale);
+
+const nav = [
+  { key: 'home', label: s.nav.home, href: homePath(locale), icon: 'home' },
+  { key: 'projects', label: s.nav.projects, href: projectsPath(locale), icon: 'box' },
+  { key: 'timeline', label: s.nav.timeline, href: timelinePath(locale), icon: 'git-commit-vertical' },
+  { key: 'stack', label: s.nav.stack, href: stackPath(locale), icon: 'layers' },
+  { key: 'about', label: s.nav.about, href: aboutPath(locale), icon: 'info' },
+];
+
+/** A nav item is active when the path matches it or sits beneath it. */
+function isActive(href: string): boolean {
+  const clean = (p: string) => p.replace(/\/+$/, '') || '/';
+  const here = clean(currentPath);
+  const target = clean(href);
+  if (target === '/' || target === '/en') return here === target;
+  return here === target || here.startsWith(`${target}/`);
+}
+---
+
+<header class="topnav" id="topnav">
+  <div class="container container--wide topnav__inner">
+    <a class="topnav__brand" href={withBase(homePath(locale))} aria-label={s.siteName}>
+      <span class="topnav__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="4" width="19" height="5" rx="1.2" />
+          <path d="M5 9v11h14V9" />
+          <path d="M10 13.5h4" />
+        </svg>
+      </span>
+      <span class="topnav__wordmark">Archiving<span class="topnav__wordmark-accent">Project</span></span>
+    </a>
+
+    <nav class="topnav__nav" aria-label={locale === 'zh' ? '主导航' : 'Primary'}>
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a
+              href={withBase(item.href)}
+              class:list={['topnav__link', isActive(item.href) && 'is-active']}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="topnav__actions">
+      <button type="button" class="topnav__search" data-search-open aria-label={s.nav.search}>
+        <Icon name="search" size={16} />
+        <span class="topnav__search-label">{s.nav.search}</span>
+        <kbd class="topnav__kbd">⌘K</kbd>
+      </button>
+
+      <div class="topnav__tools">
+        <div class="topnav__lang">
+          <LangSwitch locale={locale} counterpart={counterpart} />
+        </div>
+        <ThemeToggle locale={locale} />
+      </div>
+
+      <a
+        class="icon-btn topnav__github"
+        href={REPO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={s.nav.github}
+        title={s.nav.github}
+      >
+        <Icon name="github" size={18} />
+      </a>
+
+      <button
+        type="button"
+        class="icon-btn topnav__burger"
+        data-drawer-open
+        aria-label={s.nav.menu}
+        aria-expanded="false"
+        aria-controls="mobile-drawer"
+      >
+        <Icon name="menu" size={20} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="drawer" id="mobile-drawer" hidden>
+  <div class="drawer__scrim" data-drawer-close></div>
+  <div class="drawer__panel" role="dialog" aria-modal="true" aria-label={locale === 'zh' ? '站点菜单' : 'Site menu'}>
+    <div class="drawer__head">
+      <span class="drawer__title">{s.siteName}</span>
+      <button type="button" class="icon-btn" data-drawer-close aria-label={s.nav.close}>
+        <Icon name="close" size={20} />
+      </button>
+    </div>
+
+    <nav class="drawer__nav" aria-label={locale === 'zh' ? '站点菜单' : 'Site menu'}>
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a href={withBase(item.href)} class:list={['drawer__link', isActive(item.href) && 'is-active']}>
+              <Icon name={item.icon} size={20} />
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="drawer__foot">
+      <div class="drawer__row">
+        <span class="drawer__row-label">{s.nav.language}</span>
+        <LangSwitch locale={locale} counterpart={counterpart} />
+      </div>
+      <div class="drawer__row">
+        <span class="drawer__row-label">{s.nav.theme}</span>
+        <ThemeToggle locale={locale} />
+      </div>
+      <a class="drawer__gh" href={REPO_URL} target="_blank" rel="noopener noreferrer">
+        <Icon name="github" size={18} />
+        {s.nav.github}
+        <Icon name="arrow-up-right" size={15} class="drawer__gh-arrow" />
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .topnav {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-nav);
+    border-bottom: 1px solid transparent;
+    background: var(--nav-bg);
+    transition: border-color var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    .topnav {
+      backdrop-filter: blur(12px) saturate(1.4);
+    }
+  }
+
+  .topnav.is-scrolled {
+    border-bottom-color: var(--nav-border);
+    box-shadow: var(--e1);
+  }
+
+  .topnav__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-24);
+    height: var(--nav-h);
+  }
+
+  /* ---------- brand ---------- */
+  .topnav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    color: var(--text-hi);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    flex: none;
+  }
+
+  .topnav__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-md);
+    background: var(--brand-600);
+    color: #fff;
+    flex: none;
+  }
+
+  :global(:root[data-theme='dark']) .topnav__mark {
+    color: var(--brand-900);
+  }
+
+  .topnav__wordmark-accent {
+    color: var(--brand-600);
+  }
+
+  /* ---------- primary nav ---------- */
+  .topnav__nav {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topnav__nav ul {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    list-style: none;
+  }
+
+  .topnav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 var(--sp-12);
+    border-radius: var(--r-md);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--dur-fast) var(--ease-standard),
+      background-color var(--dur-fast) var(--ease-standard);
+  }
+
+  .topnav__link:hover {
+    color: var(--text-hi);
+    background: var(--bg-2);
+  }
+
+  .topnav__link.is-active {
+    color: var(--brand-700);
+    background: var(--brand-50);
+  }
+
+  .topnav__link.is-active::after {
+    content: '';
+    position: absolute;
+    left: var(--sp-12);
+    right: var(--sp-12);
+    bottom: -2px;
+    height: 2px;
+    border-radius: var(--r-pill);
+    background: var(--brand-600);
+  }
+
+  /* ---------- actions ---------- */
+  .topnav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-left: auto;
+    flex: none;
+  }
+
+  .topnav__search {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    height: 34px;
+    padding: 0 var(--sp-8) 0 var(--sp-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+    color: var(--text-lo);
+    font-family: inherit;
+    font-size: var(--fs-body-sm);
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-standard),
+      background-color var(--dur-fast) var(--ease-standard);
+  }
+
+  .topnav__search:hover {
+    border-color: var(--line-strong);
+    background: var(--bg-1);
+    color: var(--text-hi);
+  }
+
+  .topnav__search-label {
+    color: inherit;
+  }
+
+  .topnav__kbd {
+    padding: 2px var(--sp-6);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-xs);
+    background: var(--bg-0);
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+
+  .topnav__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+  }
+
+  .topnav__burger {
+    display: none;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1099px) {
+    .topnav__search-label,
+    .topnav__kbd {
+      display: none;
+    }
+
+    .topnav__search {
+      width: 40px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .topnav__lang {
+      display: none;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .topnav__burger {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1099px) {
+    .topnav__burger {
+      display: inline-flex;
+    }
+
+    .topnav__nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .topnav__wordmark {
+      display: none;
+    }
+
+    .topnav__inner {
+      gap: var(--sp-12);
+    }
+  }
+
+  /* ---------- drawer ---------- */
+  .drawer {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-drawer);
+  }
+
+  .drawer__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 18, 32, 0.44);
+    animation: scrim-in var(--dur-fast) var(--ease-standard);
+  }
+
+  .drawer__panel {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-0);
+    box-shadow: var(--e4);
+    animation: panel-in var(--dur-base) var(--ease-entrance);
+    overflow-y: auto;
+  }
+
+  @keyframes scrim-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes panel-in {
+    from {
+      transform: translateX(16px);
+      opacity: 0;
+    }
+  }
+
+  .drawer__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-16);
+    padding: var(--sp-16) var(--sp-20);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .drawer__title {
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semibold);
+  }
+
+  .drawer__nav {
+    padding: var(--sp-16) var(--sp-12);
+  }
+
+  .drawer__nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  .drawer__link {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    padding: var(--sp-12) var(--sp-12);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-size: 1.125rem;
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+  }
+
+  .drawer__link:hover {
+    background: var(--bg-2);
+    color: var(--text-hi);
+  }
+
+  .drawer__link.is-active {
+    background: var(--brand-50);
+    color: var(--brand-700);
+  }
+
+  .drawer__foot {
+    margin-top: auto;
+    padding: var(--sp-20);
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-16);
+  }
+
+  .drawer__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-16);
+  }
+
+  .drawer__row-label {
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-caption);
+    text-transform: uppercase;
+  }
+
+  .drawer__gh {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    padding: var(--sp-12) var(--sp-16);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+  }
+
+  .drawer__gh:hover {
+    background: var(--bg-2);
+    color: var(--text-hi);
+  }
+
+  .drawer__gh-arrow {
+    margin-left: auto;
+    color: var(--text-placeholder);
+  }
+</style>
+
+<script>
+  const nav = document.getElementById('topnav');
+  if (nav) {
+    const onScroll = () => nav.classList.toggle('is-scrolled', window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  const drawer = document.getElementById('mobile-drawer');
+  const burger = document.querySelector<HTMLElement>('[data-drawer-open]');
+
+  function openDrawer() {
+    if (!drawer) return;
+    drawer.hidden = false;
+    document.body.style.overflow = 'hidden';
+    burger?.setAttribute('aria-expanded', 'true');
+    drawer.querySelector<HTMLElement>('a, button')?.focus();
+  }
+
+  function closeDrawer() {
+    if (!drawer) return;
+    drawer.hidden = true;
+    document.body.style.overflow = '';
+    burger?.setAttribute('aria-expanded', 'false');
+    burger?.focus();
+  }
+
+  burger?.addEventListener('click', openDrawer);
+  drawer?.querySelectorAll('[data-drawer-close]').forEach((el) => {
+    el.addEventListener('click', closeDrawer);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && drawer && !drawer.hidden) closeDrawer();
+  });
+</script>

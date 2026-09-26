@@ -1,0 +1,183 @@
+---
+/**
+ * Programmatic project cover.
+ *
+ * The archive ships no screenshots, so every cover is generated from the
+ * project's own data: the category colour, the project name and a small
+ * deterministic pattern seeded by `ref`. Zero image requests, zero broken
+ * images, and the visual density of the grid no longer depends on bitmaps.
+ * Spec: DESIGN-V2 §6.6 (project card), §2.2 principle 5.
+ */
+interface Props {
+  ref: string;
+  name: string;
+  /**
+   * Category colour, passed in so the component stays data-agnostic: the
+   * caller resolves the category to a token and this component only paints.
+   */
+  color: string;
+  aspect?: string;
+  /** Compact variant used inside list rows. */
+  compact?: boolean;
+  class?: string;
+}
+
+const {
+  ref,
+  name,
+  color,
+  aspect = '2 / 1',
+  compact = false,
+  class: className = '',
+} = Astro.props;
+
+/** Stable 32-bit hash so a project always renders the same cover. */
+function hash(input: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+const seed = hash(ref);
+
+/** Pattern family — 4 variants, picked deterministically. */
+const variant = seed % 4;
+
+/** Rotation of the decorative ring, in degrees. */
+const rotation = (seed % 12) * 15;
+
+/** Initials shown as the cover wordmark when compact. */
+const initials = name.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase();
+---
+
+<div
+  class:list={['cover', compact && 'cover--compact', className]}
+  style={`--cover-color: ${color}; aspect-ratio: ${aspect};`}
+  aria-hidden="true"
+>
+  <svg class="cover__pattern" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice">
+    {variant === 0 && (
+      <g stroke="currentColor" stroke-width="0.6" opacity="0.32" fill="none">
+        {Array.from({ length: 9 }, (_, i) => (
+          <line x1={i * 50} y1="0" x2={i * 50} y2="200" />
+        ))}
+        {Array.from({ length: 5 }, (_, i) => (
+          <line x1="0" y1={i * 50} x2="400" y2={i * 50} />
+        ))}
+      </g>
+    )}
+
+    {variant === 1 && (
+      <g stroke="currentColor" stroke-width="0.8" opacity="0.34" fill="none">
+        {Array.from({ length: 6 }, (_, i) => (
+          <circle cx="320" cy="40" r={28 + i * 26} />
+        ))}
+      </g>
+    )}
+
+    {variant === 2 && (
+      <g stroke="currentColor" stroke-width="0.8" opacity="0.34" fill="none">
+        {Array.from({ length: 8 }, (_, i) => (
+          <path d={`M-40 ${30 + i * 24} Q 200 ${-20 + i * 26} 440 ${30 + i * 24}`} />
+        ))}
+      </g>
+    )}
+
+    {variant === 3 && (
+      <g stroke="currentColor" stroke-width="0.8" opacity="0.34" fill="none">
+        {Array.from({ length: 7 }, (_, i) => (
+          <rect
+            x={40 + i * 44}
+            y={40 + (i % 3) * 34}
+            width="26"
+            height="26"
+            transform={`rotate(${rotation} ${53 + i * 44} ${53 + (i % 3) * 34})`}
+          />
+        ))}
+      </g>
+    )}
+  </svg>
+
+  <span class="cover__glow" />
+  <span class="cover__wordmark">{compact ? initials : name}</span>
+  <span class="cover__ref">{ref}</span>
+</div>
+
+<style>
+  .cover {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: var(--sp-4);
+    padding: var(--sp-20);
+    overflow: hidden;
+    color: var(--cover-color);
+    background: color-mix(in srgb, var(--cover-color) 8%, var(--bg-1));
+    isolation: isolate;
+  }
+
+  .cover--compact {
+    padding: var(--sp-8);
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .cover__pattern {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--cover-color);
+    z-index: -1;
+  }
+
+  .cover__glow {
+    position: absolute;
+    right: -18%;
+    top: -35%;
+    width: 62%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--cover-color) 26%, transparent) 0%,
+      transparent 68%
+    );
+    z-index: -1;
+  }
+
+  .cover__wordmark {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: color-mix(in srgb, var(--cover-color) 82%, var(--text-hi));
+    word-break: break-word;
+  }
+
+  .cover--compact .cover__wordmark {
+    font-size: var(--fs-body-sm);
+    letter-spacing: 0.02em;
+  }
+
+  .cover__ref {
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    letter-spacing: var(--ls-caption);
+    color: color-mix(in srgb, var(--cover-color) 60%, var(--text-lo));
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cover--compact .cover__ref {
+    display: none;
+  }
+</style>

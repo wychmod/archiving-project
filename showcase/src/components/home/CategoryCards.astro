@@ -1,0 +1,181 @@
+---
+/**
+ * Category cards — the four threads that organise the archive.
+ * Spec: DESIGN-V2 §4.2 (block C)
+ */
+import Icon from '../Icon.astro';
+import SectionHead from '../SectionHead.astro';
+import { t, type Locale } from '@/data/i18n';
+import { CATEGORIES, type CategoryKey } from '@/data/taxonomy';
+import { projectsPath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  counts: Record<CategoryKey, number>;
+  /** Up to three representative project names per category. */
+  samples: Record<CategoryKey, string[]>;
+}
+
+const { locale, counts, samples } = Astro.props;
+const s = t(locale);
+---
+
+<section class="section">
+  <div class="container container--wide">
+    <SectionHead
+      overline={locale === 'zh' ? 'CATEGORIES' : 'CATEGORIES'}
+      title={s.home.categoriesTitle}
+      desc={s.home.categoriesDesc}
+    />
+
+    <div class="cat-grid">
+      {
+        CATEGORIES.map((cat) => (
+          <a
+            class="cat-card"
+            href={withBase(`${projectsPath(locale)}?category=${cat.key}`)}
+            style={`--cat-color: var(${cat.colorVar});`}
+            data-reveal
+          >
+            <span class="cat-card__rail" aria-hidden="true" />
+
+            <span class="cat-card__head">
+              <span class="cat-card__icon">
+                <Icon name={cat.icon} size={22} strokeWidth={1.6} />
+              </span>
+              <span class="cat-card__count">
+                {counts[cat.key]}
+                <span class="cat-card__count-unit">{s.home.projectCountSuffix}</span>
+              </span>
+            </span>
+
+            <span class="cat-card__label">{cat[locale].label}</span>
+            <span class="cat-card__desc">{cat[locale].desc}</span>
+
+            <span class="cat-card__samples">
+              {samples[cat.key].map((name) => (
+                <span class="cat-card__sample">{name}</span>
+              ))}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-20);
+  }
+
+  .cat-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+    padding: var(--sp-24);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard),
+      border-color var(--dur-base) var(--ease-standard);
+  }
+
+  .cat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--e3);
+    border-color: color-mix(in srgb, var(--cat-color) 40%, var(--line));
+  }
+
+  .cat-card__rail {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--cat-color);
+  }
+
+  .cat-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-12);
+    margin-bottom: var(--sp-4);
+  }
+
+  .cat-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-md);
+    background: color-mix(in srgb, var(--cat-color) 12%, transparent);
+    color: var(--cat-color);
+  }
+
+  .cat-card__count {
+    color: var(--text-hi);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cat-card__count-unit {
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-regular);
+  }
+
+  .cat-card__label {
+    color: var(--text-hi);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+  }
+
+  .cat-card__desc {
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.65;
+  }
+
+  .cat-card__samples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-top: var(--sp-12);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .cat-card__sample {
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+  }
+
+  .cat-card__sample:not(:last-child)::after {
+    content: '·';
+    margin-left: var(--sp-4);
+    color: var(--text-placeholder);
+  }
+
+  @media (max-width: 1023px) {
+    .cat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cat-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

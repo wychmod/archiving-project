@@ -1,0 +1,12 @@
+---
+/**
+ * About (en) — the repository explaining itself.
+ * Spec: DESIGN-V2 §4.7
+ */
+import AboutLayout from '@/layouts/AboutLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('en');
+---
+
+<AboutLayout locale="en" projects={projects} />

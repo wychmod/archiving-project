@@ -1,0 +1,8 @@
+---
+import HomeLayout from '@/layouts/HomeLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('en');
+---
+
+<HomeLayout locale="en" projects={projects} />

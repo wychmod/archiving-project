@@ -1,0 +1,77 @@
+---
+/**
+ * Section heading block: overline label, title, optional description and an
+ * optional trailing action link. Shared by every page so vertical rhythm and
+ * typography stay identical across the site.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  overline?: string;
+  title: string;
+  desc?: string;
+  actionLabel?: string;
+  actionHref?: string;
+  /** Heading level, so pages keep a sane outline. */
+  level?: 'h1' | 'h2';
+  id?: string;
+}
+
+const {
+  overline,
+  title,
+  desc,
+  actionLabel,
+  actionHref,
+  level = 'h2',
+  id,
+} = Astro.props;
+
+const Heading = level;
+---
+
+<div class="section-head">
+  <div class="section-head__main">
+    {overline && <span class="overline">{overline}</span>}
+    <Heading class="section-head__title" id={id}>{title}</Heading>
+    {desc && <p class="section-head__desc">{desc}</p>}
+  </div>
+
+  {
+    actionLabel && actionHref && (
+      <a class="section-head__action" href={actionHref}>
+        {actionLabel}
+        <Icon name="arrow-right" size={15} />
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .section-head__main {
+    max-width: 68ch;
+  }
+
+  .section-head__action {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    padding: var(--sp-8) var(--sp-12);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+      border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .section-head__action:hover {
+    background: var(--bg-2);
+    border-color: var(--brand-200);
+    color: var(--brand-700);
+  }
+</style>

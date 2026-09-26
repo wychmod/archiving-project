@@ -1,0 +1,497 @@
+---
+/**
+ * Global search dialog.
+ *
+ * The index is generated at build time as a static JSON document (see
+ * src/pages/search-index.json.ts) and fetched lazily on first open, so the
+ * dialog costs nothing until used. Matching, ranking and keyboard navigation
+ * all happen client-side — no service, no runtime dependency.
+ * Spec: DESIGN-V2 §5
+ */
+import Icon from './Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const s = t(locale);
+---
+
+<div class="search" id="search-dialog" hidden>
+  <div class="search__scrim" data-search-close></div>
+
+  <div class="search__panel" role="dialog" aria-modal="true" aria-label={s.nav.search}>
+    <div class="search__field">
+      <Icon name="search" size={18} class="search__icon" />
+      <input
+        type="search"
+        id="search-input"
+        class="search__input"
+        placeholder={s.search.placeholder}
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-controls="search-results"
+        aria-autocomplete="list"
+      />
+      <button type="button" class="search__esc" data-search-close aria-label={s.nav.close}>
+        <kbd>Esc</kbd>
+      </button>
+    </div>
+
+    <div class="search__results" id="search-results" role="listbox" aria-label={s.nav.search}>
+      <p class="search__hint" data-search-hint>{s.search.hint}</p>
+    </div>
+
+    <div class="search__foot">
+      <span class="search__foot-item"><kbd>↑</kbd><kbd>↓</kbd> {locale === 'zh' ? '选择' : 'Navigate'}</span>
+      <span class="search__foot-item"><kbd>↵</kbd> {locale === 'zh' ? '打开' : 'Open'}</span>
+      <span class="search__foot-item search__foot-count" data-search-count></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-search);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(40px, 12vh, 140px) var(--sp-20) var(--sp-20);
+  }
+
+  .search__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 18, 32, 0.44);
+    animation: scrim-in var(--dur-fast) var(--ease-standard);
+  }
+
+  @keyframes scrim-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .search__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: min(640px, 100%);
+    max-height: min(72vh, 640px);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    background: var(--bg-0);
+    box-shadow: var(--e4);
+    overflow: hidden;
+    animation: panel-in var(--dur-base) var(--ease-entrance);
+  }
+
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98) translateY(-4px);
+    }
+  }
+
+  .search__field {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    height: 56px;
+    padding: 0 var(--sp-16);
+    border-bottom: 1px solid var(--line);
+    flex: none;
+  }
+
+  .search__icon {
+    color: var(--text-placeholder);
+    flex: none;
+  }
+
+  .search__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: var(--fs-body);
+  }
+
+  .search__input::placeholder {
+    color: var(--text-placeholder);
+  }
+
+  .search__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search__esc kbd,
+  .search__foot kbd {
+    padding: 2px var(--sp-6);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-xs);
+    background: var(--bg-2);
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+
+  .search__esc {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .search__results {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--sp-8);
+  }
+
+  .search__hint,
+  :global(.search__empty) {
+    padding: var(--sp-32) var(--sp-16);
+    text-align: center;
+    color: var(--text-placeholder);
+    font-size: var(--fs-body-sm);
+  }
+
+  :global(.search__group) {
+    padding: var(--sp-12) var(--sp-12) var(--sp-4);
+    color: var(--text-placeholder);
+    font-size: var(--fs-overline);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-overline);
+    text-transform: uppercase;
+  }
+
+  :global(.search__item) {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    width: 100%;
+    min-height: 56px;
+    padding: var(--sp-8) var(--sp-12);
+    border: none;
+    border-radius: var(--r-md);
+    background: none;
+    color: var(--text);
+    font-family: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  :global(.search__item.is-active),
+  :global(.search__item:hover) {
+    background: var(--bg-2);
+  }
+
+  :global(.search__item.is-active) {
+    box-shadow: inset 2px 0 0 var(--brand-600);
+  }
+
+  :global(.search__swatch) {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-semibold);
+  }
+
+  :global(.search__text) {
+    min-width: 0;
+    flex: 1;
+  }
+
+  :global(.search__title) {
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-medium);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.search__meta) {
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  :global(.search__kind) {
+    margin-left: auto;
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    flex: none;
+  }
+
+  .search__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-16);
+    padding: var(--sp-8) var(--sp-16);
+    border-top: 1px solid var(--line);
+    background: var(--bg-1);
+    flex: none;
+  }
+
+  .search__foot-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-4);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .search__foot-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  interface SearchDoc {
+    ref: string;
+    name: string;
+    subtitle: string;
+    description: string;
+    category: string;
+    categoryLabel: string;
+    color: string;
+    stack: string[];
+    url: string;
+  }
+
+  interface CategoryDoc {
+    key: string;
+    label: string;
+    desc: string;
+    url: string;
+    color: string;
+  }
+
+  let index: { projects: SearchDoc[]; categories: CategoryDoc[] } | null = null;
+  let loading: Promise<void> | null = null;
+
+  const dialog = document.getElementById('search-dialog');
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+  const countEl = document.querySelector<HTMLElement>('[data-search-count]');
+  const base =
+    (document.querySelector<HTMLMetaElement>('meta[name="site-base"]')?.content ?? '') || '';
+
+  function loadIndex() {
+    if (index) return Promise.resolve();
+    if (loading) return loading;
+    loading = fetch(`${base}/search-index.json`)
+      .then((r) => r.json())
+      .then((data) => {
+        index = data;
+      })
+      .catch(() => {
+        index = { projects: [], categories: [] };
+      });
+    return loading;
+  }
+
+  function score(doc: SearchDoc, terms: string[]): number {
+    const hay = {
+      name: doc.name.toLowerCase(),
+      sub: doc.subtitle.toLowerCase(),
+      desc: doc.description.toLowerCase(),
+      stack: doc.stack.join(' ').toLowerCase(),
+      cat: doc.categoryLabel.toLowerCase(),
+    };
+    let total = 0;
+    for (const term of terms) {
+      let s = 0;
+      if (hay.name.startsWith(term)) s += 100;
+      else if (hay.name.includes(term)) s += 60;
+      if (hay.stack.includes(term)) s += 30;
+      if (hay.sub.includes(term)) s += 18;
+      if (hay.cat.includes(term)) s += 14;
+      if (hay.desc.includes(term)) s += 8;
+      if (s === 0) return 0;
+      total += s;
+    }
+    return total;
+  }
+
+  function render(html: string) {
+    if (results) results.innerHTML = html;
+  }
+
+  function run() {
+    if (!index || !input || !results) return;
+    const query = input.value.trim().toLowerCase();
+
+    if (!query) {
+      render(
+        `<p class="search__hint">${results.dataset.hintPlaceholder ?? ''}</p>`
+      );
+      if (countEl) countEl.textContent = '';
+      return;
+    }
+
+    const terms = query.split(/\s+/).filter(Boolean);
+
+    const projects = index.projects
+      .map((doc) => ({ doc, s: score(doc, terms) }))
+      .filter((entry) => entry.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 8);
+
+    const categories = index.categories
+      .filter(
+        (c) =>
+          c.label.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query)
+      )
+      .slice(0, 3);
+
+    if (!projects.length && !categories.length) {
+      render(
+        `<p class="search__empty">${results.dataset.emptyText ?? ''}</p>`
+      );
+      if (countEl) countEl.textContent = '0';
+      return;
+    }
+
+    const groupLabels = JSON.parse(results.dataset.groups ?? '{}');
+    let html = '';
+    let i = 0;
+
+    if (projects.length) {
+      html += `<p class="search__group">${groupLabels.projects ?? ''}</p>`;
+      for (const { doc } of projects) {
+        html += `
+          <a class="search__item" role="option" href="${base}${doc.url}" data-index="${i++}">
+            <span class="search__swatch" style="background: color-mix(in srgb, ${doc.color} 14%, transparent); color: ${doc.color};">${doc.name.slice(0, 2).toUpperCase()}</span>
+            <span class="search__text">
+              <span class="search__title">${doc.name} · ${doc.subtitle}</span>
+              <span class="search__meta">${doc.categoryLabel} · ${doc.stack.slice(0, 4).join(' / ')}</span>
+            </span>
+            <span class="search__kind">${groupLabels.projectKind ?? ''}</span>
+          </a>`;
+      }
+    }
+
+    if (categories.length) {
+      html += `<p class="search__group">${groupLabels.categories ?? ''}</p>`;
+      for (const cat of categories) {
+        html += `
+          <a class="search__item" role="option" href="${base}${cat.url}" data-index="${i++}">
+            <span class="search__swatch" style="background: color-mix(in srgb, ${cat.color} 14%, transparent); color: ${cat.color};">${cat.label.slice(0, 1)}</span>
+            <span class="search__text">
+              <span class="search__title">${cat.label}</span>
+              <span class="search__meta">${cat.desc}</span>
+            </span>
+            <span class="search__kind">${groupLabels.categoryKind ?? ''}</span>
+          </a>`;
+      }
+    }
+
+    render(html);
+    if (countEl) countEl.textContent = String(projects.length + categories.length);
+  }
+
+  function move(delta: number) {
+    const items = [...(results?.querySelectorAll<HTMLElement>('.search__item') ?? [])];
+    if (!items.length) return;
+    const current = items.findIndex((el) => el.classList.contains('is-active'));
+    const next = (current + delta + items.length) % items.length;
+    items.forEach((el) => el.classList.remove('is-active'));
+    items[next].classList.add('is-active');
+    items[next].scrollIntoView({ block: 'nearest' });
+  }
+
+  async function open() {
+    if (!dialog) return;
+    dialog.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (results) {
+      results.dataset.hintPlaceholder =
+        results.querySelector('.search__hint')?.textContent ?? '';
+    }
+    input?.focus();
+    await loadIndex();
+    run();
+  }
+
+  function close() {
+    if (!dialog) return;
+    dialog.hidden = true;
+    document.body.style.overflow = '';
+    if (input) input.value = '';
+    const opener = document.querySelector<HTMLElement>('[data-search-open]');
+    opener?.focus();
+  }
+
+  document.querySelectorAll('[data-search-open]').forEach((el) => {
+    el.addEventListener('click', () => void open());
+  });
+  dialog?.querySelectorAll('[data-search-close]').forEach((el) => {
+    el.addEventListener('click', close);
+  });
+
+  input?.addEventListener('input', run);
+
+  document.addEventListener('keydown', (event) => {
+    const isOpen = dialog && !dialog.hidden;
+
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      isOpen ? close() : void open();
+      return;
+    }
+
+    if (!isOpen) return;
+
+    if (event.key === 'Escape') {
+      close();
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      move(1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      move(-1);
+    } else if (event.key === 'Enter') {
+      const active = results?.querySelector<HTMLAnchorElement>('.search__item.is-active');
+      if (active) {
+        event.preventDefault();
+        window.location.href = active.href;
+      }
+    }
+  });
+
+  // Localise the strings the dialog needs at runtime.
+  const groups = {
+    projects: document.documentElement.dataset.searchProjects ?? '',
+    categories: document.documentElement.dataset.searchCategories ?? '',
+    projectKind: document.documentElement.dataset.searchProjectKind ?? '',
+    categoryKind: document.documentElement.dataset.searchCategoryKind ?? '',
+  };
+  if (results) {
+    results.dataset.groups = JSON.stringify(groups);
+    results.dataset.emptyText = document.documentElement.dataset.searchEmpty ?? '';
+  }
+</script>

@@ -1,0 +1,98 @@
+---
+/**
+ * Language switch — a segmented control, not a footnote.
+ *
+ * It maps the current path onto its counterpart in the other locale so the
+ * reader stays on the same page, and remembers the choice for later visits.
+ * Spec: DESIGN-V2 §5
+ */
+import { type Locale } from '@/data/i18n';
+import { localeLabel, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  /**
+   * Path of the counterpart page, *without* the deployment base — the caller
+   * gets it from `counterpartPath()`, which strips the base so the switcher
+   * stays portable. The base is re-applied here.
+   */
+  counterpart: string;
+}
+
+const { locale, counterpart } = Astro.props;
+const other: Locale = locale === 'en' ? 'zh' : 'en';
+
+const aria = locale === 'zh' ? '切换语言' : 'Switch language';
+---
+
+<div class="lang-switch" role="group" aria-label={aria}>
+  <a
+    class="lang-switch__opt is-active"
+    href="#"
+    aria-current="true"
+    data-lang-current={locale}
+    onclick="return false;"
+  >
+    {localeLabel(locale)}
+  </a>
+  <a class="lang-switch__opt" href={withBase(counterpart)} data-lang-target={other} rel="alternate" hreflang={other === 'en' ? 'en' : 'zh-CN'}>
+    {localeLabel(other)}
+  </a>
+</div>
+
+<style>
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+  }
+
+  .lang-switch__opt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 26px;
+    padding: 0 var(--sp-8);
+    border-radius: calc(var(--r-md) - 4px);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .lang-switch__opt:hover {
+    color: var(--text-hi);
+  }
+
+  .lang-switch__opt.is-active {
+    background: var(--bg-0);
+    color: var(--text-hi);
+    box-shadow: var(--e1);
+    cursor: default;
+  }
+</style>
+
+<script>
+  // Remember the reader's language preference so a later visit to the site root
+  // can honour it. Only store; never auto-redirect (that breaks deep links).
+  document.querySelectorAll<HTMLAnchorElement>('[data-lang-target]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const target = el.dataset.langTarget;
+      if (target) {
+        try {
+          localStorage.setItem('ap-lang', target);
+        } catch {
+          /* storage unavailable — the link still works */
+        }
+      }
+    });
+  });
+</script>

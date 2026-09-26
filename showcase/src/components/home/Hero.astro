@@ -1,0 +1,250 @@
+---
+/**
+ * Hero — the site's opening statement.
+ * Spec: DESIGN-V2 §4.2 (block A)
+ */
+import Icon from '../Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { REPO_URL } from '@/data/taxonomy';
+import { projectsPath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  /** Number of archived projects, shown inside the visual. */
+  projectCount: number;
+}
+
+const { locale, projectCount } = Astro.props;
+const s = t(locale);
+---
+
+<section class="hero">
+  <div class="container container--wide hero__inner">
+    <div class="hero__copy hero-stagger">
+      <span class="overline hero__overline">{s.hero.overline}</span>
+
+      <h1 class="hero__title">{s.hero.title}</h1>
+
+      <p class="hero__tagline">{s.hero.tagline}</p>
+
+      <p class="hero__lead">{s.hero.lead}</p>
+
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href={withBase(projectsPath(locale))}>
+          {s.hero.ctaPrimary}
+          <Icon name="arrow-right" size={17} />
+        </a>
+        <a
+          class="btn btn--secondary btn--lg"
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="github" size={17} />
+          {s.hero.ctaSecondary}
+        </a>
+      </div>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <svg class="hero__grid" viewBox="0 0 400 360" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="hero-dots" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1.2" fill="currentColor" />
+          </pattern>
+        </defs>
+        <rect width="400" height="360" fill="url(#hero-dots)" />
+        <g fill="none" stroke="currentColor" stroke-width="1" opacity="0.5">
+          <rect x="56" y="52" width="288" height="66" rx="10" />
+          <rect x="56" y="146" width="132" height="72" rx="10" />
+          <rect x="212" y="146" width="132" height="72" rx="10" />
+          <rect x="56" y="246" width="288" height="66" rx="10" />
+        </g>
+        <g fill="currentColor" opacity="0.75">
+          <circle cx="76" cy="72" r="4" />
+          <circle cx="76" cy="166" r="4" />
+          <circle cx="232" cy="166" r="4" />
+          <circle cx="76" cy="266" r="4" />
+        </g>
+      </svg>
+
+      <span class="hero__blob hero__blob--a"></span>
+      <span class="hero__blob hero__blob--b"></span>
+
+      <div class="hero__badge">
+        <span class="hero__badge-num">{projectCount}</span>
+        <span class="hero__badge-label">{s.stats.projects}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+    padding-block: clamp(56px, 9vw, 112px) clamp(72px, 10vw, 128px);
+  }
+
+  .hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 62ch;
+  }
+
+  .hero__overline {
+    color: var(--accent-800);
+  }
+
+  .hero__title {
+    font-size: var(--fs-display-1);
+    line-height: var(--lh-display);
+    letter-spacing: var(--ls-display);
+    margin: 0;
+  }
+
+  .hero__tagline {
+    margin-top: var(--sp-16);
+    color: var(--text-lo);
+    font-family: var(--font-serif);
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  .hero__lead {
+    margin-top: var(--sp-20);
+    color: var(--text);
+    font-size: var(--fs-body-lg);
+    line-height: 1.75;
+    max-width: 58ch;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+    margin-top: var(--sp-32);
+  }
+
+  /* ---------- visual ---------- */
+  .hero__visual {
+    position: relative;
+    aspect-ratio: 1 / 0.92;
+    color: var(--brand-500);
+  }
+
+  .hero__grid {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--brand-200);
+    opacity: 0.7;
+  }
+
+  .hero__grid g {
+    color: var(--brand-500);
+  }
+
+  .hero__grid circle[fill='currentColor'] {
+    fill: var(--accent-500);
+  }
+
+  .hero__blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(46px);
+  }
+
+  .hero__blob--a {
+    top: -12%;
+    right: -6%;
+    width: 58%;
+    aspect-ratio: 1;
+    background: color-mix(in srgb, var(--brand-500) 26%, transparent);
+  }
+
+  .hero__blob--b {
+    bottom: -18%;
+    left: -10%;
+    width: 46%;
+    aspect-ratio: 1;
+    background: color-mix(in srgb, var(--accent-500) 22%, transparent);
+  }
+
+  .hero__badge {
+    position: absolute;
+    right: 4%;
+    bottom: 6%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 104px;
+    padding: var(--sp-16) var(--sp-20);
+    border: 1px solid var(--line);
+    border-radius: var(--r-xl);
+    background: var(--bg-0);
+    box-shadow: var(--e3);
+  }
+
+  .hero__badge-num {
+    color: var(--brand-600);
+    font-size: 2.25rem;
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero__badge-label {
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    white-space: nowrap;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1023px) {
+    .hero__inner {
+      grid-template-columns: 1fr;
+      padding-block: clamp(40px, 8vw, 72px) clamp(56px, 9vw, 96px);
+    }
+
+    .hero__visual {
+      aspect-ratio: 16 / 9;
+      max-height: 300px;
+    }
+
+    .hero__badge {
+      right: var(--sp-16);
+      bottom: var(--sp-16);
+      min-width: 88px;
+      padding: var(--sp-12) var(--sp-16);
+    }
+
+    .hero__badge-num {
+      font-size: 1.75rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero__visual {
+      display: none;
+    }
+
+    .hero__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

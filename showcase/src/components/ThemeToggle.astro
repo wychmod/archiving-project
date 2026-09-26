@@ -1,0 +1,101 @@
+---
+/**
+ * Theme toggle — three states (system / light / dark).
+ *
+ * The inline script in BaseLayout applies the stored preference before first
+ * paint, so there is no flash of the wrong theme. This component only renders
+ * the control and wires up the click cycle.
+ * Spec: DESIGN-V2 §5
+ */
+import Icon from './Icon.astro';
+import type { Locale } from '@/data/i18n';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+
+const labels = {
+  zh: { light: '浅色', dark: '深色', system: '跟随系统', title: '切换主题' },
+  en: { light: 'Light', dark: 'Dark', system: 'System', title: 'Switch theme' },
+}[locale];
+---
+
+<div class="theme-toggle" role="group" aria-label={labels.title}>
+  <button type="button" class="icon-btn" data-theme-set="light" title={labels.light} aria-label={labels.light}>
+    <Icon name="sun" size={17} />
+  </button>
+  <button type="button" class="icon-btn" data-theme-set="dark" title={labels.dark} aria-label={labels.dark}>
+    <Icon name="moon" size={17} />
+  </button>
+  <button type="button" class="icon-btn" data-theme-set="system" title={labels.system} aria-label={labels.system}>
+    <Icon name="monitor" size={17} />
+  </button>
+</div>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+  }
+
+  .theme-toggle .icon-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: calc(var(--r-md) - 4px);
+    background: transparent;
+  }
+
+  .theme-toggle .icon-btn[aria-pressed='true'] {
+    background: var(--bg-0);
+    color: var(--text-hi);
+    box-shadow: var(--e1);
+  }
+</style>
+
+<script>
+  const KEY = 'ap-theme';
+
+  function apply(mode: string) {
+    const root = document.documentElement;
+    const resolved =
+      mode === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : mode;
+
+    root.dataset.theme = resolved;
+    root.dataset.themeMode = mode;
+    root.style.colorScheme = resolved;
+
+    document.querySelectorAll<HTMLElement>('[data-theme-set]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.themeSet === mode));
+    });
+  }
+
+  function init() {
+    const stored = localStorage.getItem(KEY) ?? 'system';
+    apply(stored);
+
+    document.querySelectorAll<HTMLElement>('[data-theme-set]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.themeSet ?? 'system';
+        localStorage.setItem(KEY, mode);
+        apply(mode);
+      });
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if ((localStorage.getItem(KEY) ?? 'system') === 'system') apply('system');
+    });
+  }
+
+  init();
+</script>

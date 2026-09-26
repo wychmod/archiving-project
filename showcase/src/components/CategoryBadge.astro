@@ -1,0 +1,65 @@
+---
+/**
+ * Category badge — colour 12% fill + colour text, with a leading dot.
+ * Spec: DESIGN-V2 §6.6
+ */
+import { CATEGORY_MAP, type CategoryKey, type Locale } from '@/data/taxonomy';
+
+interface Props {
+  category: CategoryKey;
+  locale: Locale;
+  as?: 'span' | 'a';
+  href?: string;
+  size?: 'sm' | 'md';
+}
+
+const { category, locale, as = 'span', href, size = 'md' } = Astro.props;
+const meta = CATEGORY_MAP[category];
+const label = meta[locale].label;
+const Tag = as;
+---
+
+<Tag
+  class:list={['cat-badge', size === 'sm' && 'cat-badge--sm']}
+  style={`--cat-color: var(${meta.colorVar});`}
+  {...as === 'a' && href ? { href } : {}}
+>
+  <span class="cat-badge__dot"></span>
+  {label}
+</Tag>
+
+<style>
+  .cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    height: 22px;
+    padding: 0 var(--sp-8);
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--cat-color) 12%, transparent);
+    color: color-mix(in srgb, var(--cat-color) 92%, var(--text-hi));
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .cat-badge--sm {
+    height: 20px;
+    font-size: 0.75rem;
+  }
+
+  a.cat-badge:hover {
+    background: color-mix(in srgb, var(--cat-color) 20%, transparent);
+    color: color-mix(in srgb, var(--cat-color) 92%, var(--text-hi));
+  }
+
+  .cat-badge__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cat-color);
+    flex: none;
+  }
+</style>

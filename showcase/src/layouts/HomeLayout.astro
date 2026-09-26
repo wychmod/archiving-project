@@ -1,0 +1,301 @@
+---
+/**
+ * Curated home page — ten blocks, assembled from data rather than prose.
+ * Spec: DESIGN-V2 §4.2
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/home/Hero.astro';
+import StatStrip from '@/components/home/StatStrip.astro';
+import CategoryCards from '@/components/home/CategoryCards.astro';
+import StackChart from '@/components/home/StackChart.astro';
+import SectionHead from '@/components/SectionHead.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import Timeline from '@/components/Timeline.astro';
+import Icon from '@/components/Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { CATEGORIES, REPO_URL, STACKS, type CategoryKey } from '@/data/taxonomy';
+import {
+  countByCategory,
+  groupByPeriod,
+  stackFrequency,
+  type ProjectRecord,
+} from '@/lib/content';
+import { projectsPath, timelinePath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  projects: ProjectRecord[];
+}
+
+const { locale, projects } = Astro.props;
+const s = t(locale);
+
+const categoryCounts = countByCategory(projects);
+const countMap = Object.fromEntries(
+  categoryCounts.map((c) => [c.key, c.count])
+) as Record<CategoryKey, number>;
+
+/** Up to three representative names per category, newest first. */
+const samples = Object.fromEntries(
+  CATEGORIES.map((cat) => [
+    cat.key,
+    projects
+      .filter((p) => p.category === cat.key)
+      .slice(0, 3)
+      .map((p) => p.name),
+  ])
+) as Record<CategoryKey, string[]>;
+
+const frequency = Object.fromEntries(stackFrequency(projects)) as Record<string, number>;
+const stackCount = STACKS.filter((x) => frequency[x.key]).length;
+
+/** Hand-picked featured set: architectural depth + engineering completeness. */
+const FEATURED_REFS = ['TokenBridge', 'lottery', 'ascvd'];
+const featured = FEATURED_REFS.map((ref) => projects.find((p) => p.ref === ref)).filter(
+  (p): p is ProjectRecord => Boolean(p)
+);
+
+const overview = projects.slice(0, 6);
+const timelineGroups = groupByPeriod(projects);
+
+const method = [
+  { icon: 'search', title: s.home.methodSearchable, desc: s.home.methodSearchableDesc },
+  { icon: 'layers', title: s.home.methodComparable, desc: s.home.methodComparableDesc },
+  { icon: 'shield-check', title: s.home.methodDurable, desc: s.home.methodDurableDesc },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  bareTitle
+  title={`${s.siteName} · ${s.hero.title}`}
+  description={s.metaDescription}
+  keywords={['归档', 'archive', 'showcase', 'side projects', '技术栈']}
+>
+  <Hero locale={locale} projectCount={projects.length} />
+
+  <StatStrip
+    locale={locale}
+    projectCount={projects.length}
+    stackCount={stackCount}
+    docCount={projects.length * 2}
+  />
+
+  <CategoryCards locale={locale} counts={countMap} samples={samples} />
+
+  <!-- D · Selected projects -->
+  <section class="section section--tight">
+    <div class="container container--wide">
+      <SectionHead
+        overline="SELECTED"
+        title={s.home.featuredTitle}
+        desc={s.home.featuredDesc}
+        actionLabel={s.home.featuredViewAll}
+        actionHref={withBase(projectsPath(locale))}
+      />
+
+      <div class="grid grid--3">
+        {featured.map((project) => <ProjectCard project={project} locale={locale} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- E · Full index preview -->
+  <section class="section">
+    <div class="container container--wide">
+      <SectionHead
+        overline="INDEX"
+        title={s.home.overviewTitle}
+        desc={s.home.overviewDesc}
+        actionLabel={s.home.featuredViewAll}
+        actionHref={withBase(projectsPath(locale))}
+      />
+
+      <div class="grid grid--3">
+        {overview.map((project) => <ProjectCard project={project} locale={locale} />)}
+      </div>
+
+      <div class="index-more">
+        <a class="btn btn--secondary" href={withBase(projectsPath(locale))}>
+          {s.home.featuredViewAll} · {projects.length}
+          <Icon name="arrow-right" size={16} />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <StackChart locale={locale} frequency={frequency} />
+
+  <!-- G · Timeline -->
+  <section class="section">
+    <div class="container container--wide">
+      <SectionHead
+        overline="TIMELINE"
+        title={s.home.timelineTitle}
+        desc={s.home.timelineDesc}
+        actionLabel={s.home.timelineViewAll}
+        actionHref={withBase(timelinePath(locale))}
+      />
+
+      <div class="home-timeline">
+        <Timeline locale={locale} groups={timelineGroups.slice(0, 2)} />
+      </div>
+    </div>
+  </section>
+
+  <!-- H · Method -->
+  <section class="section section--tight">
+    <div class="container container--wide">
+      <SectionHead overline="PRINCIPLES" title={s.home.methodTitle} desc={s.home.methodDesc} />
+
+      <div class="method">
+        {
+          method.map((item) => (
+            <div class="method__item" data-reveal>
+              <span class="method__icon">
+                <Icon name={item.icon} size={20} strokeWidth={1.6} />
+              </span>
+              <h3 class="method__title">{item.title}</h3>
+              <p class="method__desc">{item.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- I · Closing CTA -->
+  <section class="cta">
+    <div class="container container--wide cta__inner">
+      <div class="cta__copy">
+        <h2 class="cta__title">{s.home.ctaTitle}</h2>
+        <p class="cta__desc">{s.home.ctaDesc}</p>
+      </div>
+      <div class="cta__actions">
+        <a class="btn btn--primary" href={`${REPO_URL}/blob/main/AGENTS.md`} target="_blank" rel="noopener noreferrer">
+          <Icon name="file-text" size={16} />
+          {s.home.ctaDocs}
+        </a>
+        <a class="btn btn--secondary" href={`${REPO_URL}#-归档工作流`} target="_blank" rel="noopener noreferrer">
+          {s.home.ctaWorkflow}
+          <Icon name="arrow-up-right" size={15} />
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .index-more {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--sp-32);
+  }
+
+  .home-timeline {
+    position: relative;
+  }
+
+  /* ---------- method ---------- */
+  .method {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-24);
+  }
+
+  .method__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    padding: var(--sp-24);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+  }
+
+  .method__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-md);
+    background: var(--brand-50);
+    color: var(--brand-700);
+  }
+
+  .method__title {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+    color: var(--text-hi);
+  }
+
+  .method__desc {
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.7;
+  }
+
+  /* ---------- CTA ---------- */
+  .cta {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .cta__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-32);
+    padding-block: clamp(40px, 6vw, 72px);
+  }
+
+  .cta__copy {
+    max-width: 60ch;
+  }
+
+  .cta__title {
+    font-size: var(--fs-h2);
+    letter-spacing: var(--ls-heading);
+    position: relative;
+    padding-left: var(--sp-16);
+  }
+
+  .cta__title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    bottom: 0.2em;
+    width: 3px;
+    border-radius: var(--r-pill);
+    background: var(--accent-500);
+  }
+
+  .cta__desc {
+    margin-top: var(--sp-12);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.75;
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+  }
+
+  @media (max-width: 1023px) {
+    .method {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .cta__actions .btn {
+      width: 100%;
+    }
+  }
+</style>

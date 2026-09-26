@@ -1,0 +1,12 @@
+---
+/**
+ * Archive timeline (zh) — the collection read as a growth history.
+ * Spec: DESIGN-V2 §4.5
+ */
+import TimelineLayout from '@/layouts/TimelineLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('zh');
+---
+
+<TimelineLayout locale="zh" projects={projects} />

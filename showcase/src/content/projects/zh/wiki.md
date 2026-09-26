@@ -1,0 +1,78 @@
+---
+ref: wiki
+lang: zh
+title: "wiki · Spring Boot + Vue 3 全栈知识库"
+name: "wiki"
+subtitle: "Spring Boot + Vue 3 全栈知识库"
+description: "Spring Boot + Vue 3 全栈知识库,以「电子书 → 分类 → 文档」三层结构组织内容:富文本编辑、树形分类、IP 限次点赞、RocketMQ 解耦的 WebSocket 实时通知、Redis 登录态与定时快照"
+category: enterprise
+stack:
+  - java
+  - spring-boot
+  - vue3
+  - redis
+  - websocket
+  - mybatis
+status: archived
+scrubbed: false
+repoCleared: false
+archivedAt: 2026-06-25
+---
+## 概览
+
+`wiki` 是一个**全栈知识库 / 文档管理系统**练手项目,以「电子书 → 分类 → 文档」三层结构组织内容,
+配合富文本编辑、文档点赞、阅读统计和 WebSocket 实时通知,形成一个类语雀 / Confluence 的小型知识库。
+
+它的特别之处在提交历史:从 2021 年 7 月到 11 月,能清晰看到**从单一 CRUD 逐步长出完整系统**的演进轨迹——
+加 Redis 登录态、加 AOP 日志、集成 MQ、又移除 MQ、加 WebSocket、加定时任务——非常适合作为
+"小型全栈项目逐步迭代"的参考样本。
+
+**当前状态**:已归档,仅保留源码作为历史学习参考。
+
+## 功能模块
+
+| 模块 | 能力 |
+| --- | --- |
+| 📚 电子书管理 | 电子书的增删改查、列表分页、按分类筛选 |
+| 🌲 分类管理 | 树形分类结构,支持父子层级、级联禁用 / 删除 |
+| 📄 文档管理 | 树形文档节点、wangEditor 富文本编辑、内容预览、文档快照表 |
+| 👍 文档点赞 | 同一 IP 一天只能对同一文档点赞一次,阅读量 +1 统计 |
+| 🔔 WebSocket 实时通知 | 点赞事件推送给被点赞作者(最初经 RocketMQ 解耦,后因场景不需要移除) |
+| 👤 用户系统 | 注册、登录、密码重置、用户名重复校验的自定义异常,登录态存 Redis |
+| ⏰ 定时任务 | 定时刷新电子书阅读量、点赞数等汇总信息到快照表 |
+| 🧾 AOP 日志 | 日志流水号透传到异步线程,方便生产运维定位 |
+| 📦 统一响应 | `CommonResp<T>` + 业务码体系 + 全局异常处理 |
+
+## 技术栈
+
+| 层 | 选型 |
+| --- | --- |
+| 后端 | `Java 8` · `Spring Boot 2.4` · `Spring AOP` · `Spring Validation` |
+| 持久化 | `MyBatis` + `MyBatis Generator`(从 SQL 表直接生成 CRUD) · `MySQL 8` · `PageHelper` |
+| 中间件 | `Redis`(登录态/点赞计数) · `WebSocket`(实时通知) · `Fastjson`(Long 精度修复) |
+| 前端 | `Vue 3` + `TypeScript` · `Vue Router 4` · `Vuex 4` · `Ant Design Vue 2` · `Axios 0.21` |
+| 富文本 | `wangEditor 4.6.3` |
+| 构建 | `Vue CLI 4.5` |
+
+## 架构亮点
+
+- **三层内容模型**:电子书 → 分类 → 文档,树形分类支持父子层级与级联禁用/删除
+- **登录态存 Redis + 拦截器校验**,配合统一响应封装 `CommonResp<T>` 与业务码体系
+- **AOP 日志与流水号**:日志流水号透传到异步线程,方便定位生产问题
+- **WebSocket 实时通知**:点赞事件推送给作者,中间经历过一次"MQ 引入 → 移除"的取舍
+- **定时任务 + 快照表**:定时刷新电子书阅读量、点赞数等汇总信息
+- **前后端协同细节**:跨域、token 一致性、Long 类型精度丢失的修复(前端 JSON parse 改字符串再转)
+- **工程惯例**:`.http` 文件配合 IntelliJ HTTP Client 做接口自测,controller / service / mapper / req / resp / aspect / job / websocket 分包清晰
+
+## 学习收获
+
+这个项目让我第一次把"中间件选型要服务于真实场景"这句话落到实处:MQ 加进来又移除的过程,
+本身就是一次架构判断力的训练。树形数据递归(禁用节点、级联删除、加载顺序控制)、Redis 登录态、
+AOP 透传、定时任务这些实战点,后来在企业项目里都反复用到。
+
+## 归档信息
+
+- **归档日期**:2026-06-25
+- **源码入口**:[`archived-projects/wiki/`](https://github.com/wychmod/archiving-project/tree/main/archived-projects/wiki)
+- **归档说明**:[ARCHIVE.md](https://github.com/wychmod/archiving-project/blob/main/archived-projects/wiki/ARCHIVE.md)
+- **建表脚本**:`doc/all.sql` 可直接导入初始化数据库

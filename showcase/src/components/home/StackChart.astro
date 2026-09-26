@@ -1,0 +1,260 @@
+---
+/**
+ * Technology distribution — bars for backend languages, a weighted tag cloud
+ * for everything else. Counts come from the projects' own `stack` arrays, so
+ * the chart can never drift from the archive.
+ * Spec: DESIGN-V2 §4.2 (block F), §4.6
+ */
+import SectionHead from '../SectionHead.astro';
+import Icon from '../Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { STACKS, stackLabel } from '@/data/taxonomy';
+import { stackPath, withBase, projectsPath } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  /** stack key -> number of projects using it. */
+  frequency: Record<string, number>;
+  /** Optional cap on how many bars to render. */
+  barLimit?: number;
+}
+
+const { locale, frequency, barLimit = 6 } = Astro.props;
+const s = t(locale);
+
+/** Backend language keys, in dictionary order, restricted to those in use. */
+const languageKeys = STACKS.filter((x) => x.group === 'backend' && x.color)
+  .map((x) => x.key)
+  .filter((key) => frequency[key]);
+
+const bars = languageKeys
+  .map((key) => ({ key, count: frequency[key] }))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, barLimit);
+
+const maxCount = Math.max(...bars.map((b) => b.count), 1);
+
+/** Everything that is not a language becomes a sized tag. */
+const tagKeys = Object.keys(frequency)
+  .filter((key) => !bars.some((b) => b.key === key))
+  .sort((a, b) => frequency[b] - frequency[a]);
+
+const maxFreq = Math.max(...tagKeys.map((k) => frequency[k]), 1);
+const minFreq = Math.min(...tagKeys.map((k) => frequency[k]), 1);
+
+/** Map a frequency onto a font-size step between 13px and 21px. */
+function tagSize(count: number): string {
+  if (maxFreq === minFreq) return '1rem';
+  const ratio = (count - minFreq) / (maxFreq - minFreq);
+  return `${(0.8125 + ratio * 0.5).toFixed(3)}rem`;
+}
+
+function tagWeight(count: number): string {
+  if (maxFreq === minFreq) return 'var(--fw-medium)';
+  return count >= maxFreq * 0.7 ? 'var(--fw-semibold)' : 'var(--fw-regular)';
+}
+
+function tagColor(count: number): string {
+  if (maxFreq === minFreq) return 'var(--text-lo)';
+  const ratio = (count - minFreq) / (maxFreq - minFreq);
+  return ratio > 0.6 ? 'var(--brand-700)' : 'var(--text-lo)';
+}
+---
+
+<section class="section">
+  <div class="container container--wide">
+    <SectionHead
+      overline="TECHNOLOGY"
+      title={s.home.stacksTitle}
+      desc={s.home.stacksDesc}
+      actionLabel={s.nav.stack}
+      actionHref={withBase(stackPath(locale))}
+    />
+
+    <div class="stack-split" data-reveal>
+      <div class="stack-panel">
+        <p class="stack-panel__head">{s.home.stacksByLanguage}</p>
+
+        <ul class="bars">
+          {
+            bars.map((bar) => {
+              const color = STACKS.find((x) => x.key === bar.key)?.color ?? 'var(--brand-600)';
+              const width = `${Math.round((bar.count / maxCount) * 100)}%`;
+              return (
+                <li class="bars__row">
+                  <span class="bars__label">
+                    <span class="bars__swatch" style={`background: ${color}`} />
+                    {stackLabel(bar.key, locale)}
+                  </span>
+                  <span class="bars__track">
+                    <span class="bars__fill" style={`width: ${width}; background: ${color}`} />
+                  </span>
+                  <span class="bars__count">{bar.count}</span>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+
+      <div class="stack-panel">
+        <p class="stack-panel__head">{s.home.stacksByFrontend}</p>
+
+        <div class="cloud">
+          {
+            tagKeys.map((key) => (
+              <a
+                class="cloud__tag"
+                href={withBase(`${projectsPath(locale)}?stack=${encodeURIComponent(key)}`)}
+                style={`font-size: ${tagSize(frequency[key])}; font-weight: ${tagWeight(frequency[key])}; color: ${tagColor(frequency[key])};`}
+              >
+                {stackLabel(key, locale)}
+                <span class="cloud__n">{frequency[key]}</span>
+              </a>
+            ))
+          }
+        </div>
+
+        <p class="stack-panel__foot">
+          <Icon name="filter" size={14} />
+          {s.stack.allTagsDesc}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stack-split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--sp-24);
+  }
+
+  .stack-panel {
+    display: flex;
+    flex-direction: column;
+    padding: var(--sp-24);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+  }
+
+  .stack-panel__head {
+    margin-bottom: var(--sp-20);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-overline);
+    text-transform: uppercase;
+  }
+
+  .stack-panel__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-6);
+    margin-top: auto;
+    padding-top: var(--sp-20);
+    border-top: 1px solid var(--line-soft);
+    color: var(--text-placeholder);
+    font-size: var(--fs-caption);
+  }
+
+  /* ---------- bars ---------- */
+  .bars {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+  }
+
+  .bars__row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: var(--sp-12);
+  }
+
+  .bars__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    color: var(--text);
+    font-size: var(--fs-body-sm);
+    min-width: 0;
+  }
+
+  .bars__swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex: none;
+  }
+
+  .bars__track {
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+
+  .bars__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--r-pill);
+    opacity: 0.85;
+  }
+
+  .bars__count {
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- cloud ---------- */
+  .cloud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-8) var(--sp-16);
+  }
+
+  .cloud__tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-4);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+
+  .cloud__tag:hover {
+    color: var(--brand-600) !important;
+  }
+
+  .cloud__n {
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-regular);
+  }
+
+  @media (max-width: 1023px) {
+    .stack-split {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .bars__row {
+      grid-template-columns: 84px minmax(0, 1fr) 24px;
+      gap: var(--sp-8);
+    }
+
+    .bars__label {
+      font-size: var(--fs-caption);
+    }
+  }
+</style>

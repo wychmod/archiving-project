@@ -1,0 +1,450 @@
+---
+/**
+ * Technology overview — the archive sliced by stack instead of by project.
+ * Spec: DESIGN-V2 §4.6
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { STACKS, STACK_GROUPS, stackLabel } from '@/data/taxonomy';
+import { stackFrequency, usedStacks, type ProjectRecord } from '@/lib/content';
+import { projectPath, projectsPath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  projects: ProjectRecord[];
+}
+
+const { locale, projects } = Astro.props;
+const s = t(locale);
+
+const frequency = stackFrequency(projects);
+
+/** Only stacks that actually appear in the archive. */
+const used = usedStacks(projects);
+
+const groups = STACK_GROUPS.map((group) => ({
+  ...group,
+  items: used
+    .filter((key) => STACKS.find((x) => x.key === key)?.group === group.key)
+    .map((key) => ({
+      key,
+      label: stackLabel(key, locale),
+      count: frequency.get(key) ?? 0,
+      color: STACKS.find((x) => x.key === key)?.color,
+      projects: projects.filter((p) => p.stack.includes(key)),
+    }))
+    .sort((a, b) => b.count - a.count),
+})).filter((g) => g.items.length > 0);
+
+const maxCount = Math.max(...used.map((k) => frequency.get(k) ?? 0), 1);
+const minCount = Math.min(...used.map((k) => frequency.get(k) ?? 0), 1);
+
+function cloudSize(count: number): string {
+  if (maxCount === minCount) return '0.9375rem';
+  const ratio = (count - minCount) / (maxCount - minCount);
+  return `${(0.8125 + ratio * 0.5625).toFixed(3)}rem`;
+}
+
+const GROUP_ICON: Record<string, string> = {
+  backend: 'server',
+  frontend: 'cpu',
+  architecture: 'box',
+};
+---
+
+<BaseLayout
+  locale={locale}
+  title={s.stack.title}
+  description={s.stack.desc}
+  keywords={['技术栈', 'tech stack', ...used.slice(0, 12)]}
+>
+  <div class="page-head">
+    <div class="container container--wide">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href={withBase(locale === 'en' ? '/en/' : '/')}>{s.detail.breadcrumbHome}</a>
+        <span class="crumb__sep" aria-hidden="true">/</span>
+        <span aria-current="page">{s.stack.title}</span>
+      </nav>
+
+      <h1 class="page-head__title">{s.stack.title}</h1>
+      <p class="page-head__desc">{s.stack.desc}</p>
+
+      <nav class="anchor-nav" aria-label={s.stack.title}>
+        {
+          groups.map((group) => (
+            <a class="anchor-nav__item" href={`#group-${group.key}`}>
+              <Icon name={GROUP_ICON[group.key] ?? 'box'} size={15} />
+              {group[locale]}
+              <span class="anchor-nav__n">{group.items.length}</span>
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+  </div>
+
+  <div class="container container--wide stack-page">
+    {
+      groups.map((group) => (
+        <section class="sgroup" id={`group-${group.key}`}>
+          <div class="sgroup__head">
+            <span class="sgroup__icon">
+              <Icon name={GROUP_ICON[group.key] ?? 'box'} size={18} strokeWidth={1.6} />
+            </span>
+            <h2 class="sgroup__title">{group[locale]}</h2>
+            <span class="sgroup__count">
+              {group.items.length}
+              <span class="sgroup__count-unit">{locale === 'zh' ? ' 项' : ''}</span>
+            </span>
+          </div>
+
+          <ul class="srows">
+            {group.items.map((item) => (
+              <li class="srow" data-reveal>
+                <a
+                  class="srow__name"
+                  href={withBase(`${projectsPath(locale)}?stack=${encodeURIComponent(item.key)}`)}
+                >
+                  {item.color && <span class="srow__swatch" style={`background: ${item.color}`} />}
+                  {item.label}
+                </a>
+
+                <span class="srow__track" aria-hidden="true">
+                  <span
+                    class="srow__fill"
+                    style={`width: ${Math.round((item.count / maxCount) * 100)}%;${item.color ? ` background: ${item.color};` : ''}`}
+                  />
+                </span>
+
+                <span class="srow__count">
+                  {item.count}
+                  <span class="srow__count-unit">{s.stack.projectsCount}</span>
+                </span>
+
+                <span class="srow__projects">
+                  {item.projects.slice(0, 4).map((p) => (
+                    <a class="srow__proj" href={withBase(projectPath(locale, p.ref))}>{p.name}</a>
+                  ))}
+                  {item.projects.length > 4 && (
+                    <span class="srow__proj srow__proj--more">+{item.projects.length - 4}</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <section class="cloud-section">
+      <div class="sgroup__head">
+        <span class="sgroup__icon"><Icon name="filter" size={18} strokeWidth={1.6} /></span>
+        <h2 class="sgroup__title">{s.stack.allTags}</h2>
+      </div>
+      <p class="cloud-section__desc">{s.stack.allTagsDesc}</p>
+
+      <div class="cloud">
+        {
+          used.map((key) => {
+            const count = frequency.get(key) ?? 0;
+            return (
+              <a
+                class="cloud__tag"
+                href={withBase(`${projectsPath(locale)}?stack=${encodeURIComponent(key)}`)}
+                style={`font-size: ${cloudSize(count)};`}
+              >
+                {stackLabel(key, locale)}
+                <span class="cloud__n">{count}</span>
+              </a>
+            );
+          })
+        }
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-head {
+    padding-block: var(--sp-32) 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .crumb {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-bottom: var(--sp-20);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .crumb a {
+    color: var(--text-lo);
+    text-decoration: none;
+  }
+
+  .crumb a:hover {
+    color: var(--link);
+  }
+
+  .crumb__sep {
+    color: var(--text-placeholder);
+  }
+
+  .page-head__title {
+    font-size: var(--fs-h1);
+    letter-spacing: var(--ls-display-2);
+  }
+
+  .page-head__desc {
+    margin-top: var(--sp-12);
+    max-width: 64ch;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.75;
+  }
+
+  .anchor-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-8);
+    margin-top: var(--sp-24);
+    padding-bottom: var(--sp-20);
+  }
+
+  .anchor-nav__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    padding: var(--sp-6) var(--sp-12);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: var(--bg-0);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .anchor-nav__item:hover {
+    border-color: var(--brand-200);
+    color: var(--brand-700);
+  }
+
+  .anchor-nav__n {
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+  }
+
+  /* ---------- groups ---------- */
+  .stack-page {
+    padding-block: var(--sp-48) 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(40px, 6vw, 72px);
+  }
+
+  .sgroup__head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    margin-bottom: var(--sp-24);
+    padding-bottom: var(--sp-16);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sgroup__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    background: var(--brand-50);
+    color: var(--brand-700);
+    flex: none;
+  }
+
+  .sgroup__title {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+  }
+
+  .sgroup__count {
+    margin-left: auto;
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-body-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sgroup__count-unit {
+    color: var(--text-placeholder);
+    font-family: var(--font-sans);
+    font-size: var(--fs-caption);
+  }
+
+  /* ---------- rows ---------- */
+  .srows {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .srow {
+    display: grid;
+    grid-template-columns: 200px minmax(80px, 1fr) 96px minmax(0, 2fr);
+    align-items: center;
+    gap: var(--sp-16);
+    padding: var(--sp-12) 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .srow__name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-medium);
+    text-decoration: none;
+    min-width: 0;
+  }
+
+  .srow__name:hover {
+    color: var(--link);
+  }
+
+  .srow__swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: none;
+  }
+
+  .srow__track {
+    height: 6px;
+    border-radius: var(--r-pill);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+
+  .srow__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--r-pill);
+    background: var(--brand-600);
+    opacity: 0.8;
+  }
+
+  .srow__count {
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .srow__count-unit {
+    margin-left: var(--sp-4);
+    color: var(--text-placeholder);
+    font-family: var(--font-sans);
+  }
+
+  .srow__projects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-8);
+    min-width: 0;
+  }
+
+  .srow__proj {
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .srow__proj:hover {
+    color: var(--link);
+  }
+
+  .srow__proj--more {
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+  }
+
+  /* ---------- cloud ---------- */
+  .cloud-section__desc {
+    margin-bottom: var(--sp-24);
+    max-width: 64ch;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+  }
+
+  .cloud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--sp-12) var(--sp-20);
+    padding: var(--sp-24);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+  }
+
+  .cloud__tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-4);
+    color: var(--text-lo);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+
+  .cloud__tag:hover {
+    color: var(--brand-600);
+  }
+
+  .cloud__n {
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+  }
+
+  @media (max-width: 1023px) {
+    .srow {
+      grid-template-columns: 160px minmax(60px, 1fr) 80px;
+    }
+
+    .srow__projects {
+      grid-column: 1 / -1;
+      padding-left: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .srow {
+      grid-template-columns: 1fr auto;
+      gap: var(--sp-8);
+    }
+
+    .srow__track {
+      grid-column: 1 / -1;
+      order: 3;
+    }
+
+    .srow__projects {
+      display: none;
+    }
+  }
+</style>

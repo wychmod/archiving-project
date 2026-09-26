@@ -1,0 +1,252 @@
+/* ============================================================================
+   Archiving Project · Design Tokens
+   The single source of truth for colour, type, space, radius, shadow, motion.
+   Components MUST reference these variables and must not hardcode values.
+   Spec: showcase/docs/DESIGN-V2.md §6
+   ========================================================================= */
+
+:root {
+  /* ---------- 6.1 Colour · brand (ink indigo) ---------- */
+  --brand-50: #eef2fe;
+  --brand-100: #dce4fd;
+  --brand-200: #bccbfb;
+  --brand-400: #6e8cf3;
+  --brand-500: #3b63e8;
+  --brand-600: #2547d0;
+  --brand-700: #1b36a5;
+  --brand-900: #101f5c;
+
+  /* ---------- 6.1 Colour · accent (copper, archive semantics) ---------- */
+  --accent-50: #fbf5ea;
+  --accent-100: #f6e9d2;
+  --accent-500: #c8963c;
+  --accent-600: #a87a28;
+  --accent-800: #6b4c14;
+
+  /* ---------- 6.1 Colour · semantic ---------- */
+  --success: #16a36a;
+  --success-bg: #e8f7f0;
+  --success-text: #0d6b46;
+  --warning: #cc7a00;
+  --warning-bg: #fdf3e3;
+  --warning-text: #7a4a00;
+  --danger: #d64545;
+  --danger-bg: #fdeded;
+  --danger-text: #8f2323;
+
+  /* ---------- 6.1 Colour · category (4 values, semantics never move) ---------- */
+  --cat-ai: #3b63e8;
+  --cat-fullstack: #0e9f8e;
+  --cat-enterprise: #7c5ce0;
+  --cat-tools: #c8963c;
+
+  /* ---------- Colour · application roles (light theme default) ---------- */
+  --bg-0: #ffffff;
+  --bg-1: #fafbfd;
+  --bg-2: #f3f5f9;
+
+  --line: #e4e8ef;
+  --line-strong: #d3d9e2;
+  --line-soft: #eef1f6;
+
+  --text-hi: #0b1220;
+  --text: #26334a;
+  --text-lo: #5a6779;
+  --text-placeholder: #a5aebc;
+
+  --link: var(--brand-600);
+  --link-hover: var(--brand-700);
+
+  --btn-primary-bg: var(--brand-600);
+  --btn-primary-bg-hover: var(--brand-700);
+  --btn-primary-fg: #ffffff;
+
+  --nav-bg: rgba(255, 255, 255, 0.86);
+  --nav-border: var(--line);
+
+  --focus-ring: var(--brand-500);
+
+  /* ---------- 6.2 Typography ---------- */
+  --font-sans: 'Inter', 'HarmonyOS Sans SC', 'Noto Sans SC', 'PingFang SC',
+    'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
+    Consolas, 'Liberation Mono', monospace;
+  --font-serif: 'Source Serif 4', Georgia, 'Songti SC', 'Noto Serif SC', serif;
+
+  --fs-display-1: clamp(2.5rem, 6vw, 4rem);
+  --fs-display-2: clamp(2rem, 4.4vw, 3rem);
+  --fs-h1: clamp(1.75rem, 3.2vw, 2.25rem);
+  --fs-h2: clamp(1.5rem, 2.6vw, 1.875rem);
+  --fs-h3: 1.375rem;
+  --fs-h4: 1.125rem;
+  --fs-body-lg: 1.0625rem;
+  --fs-body: 1rem;
+  --fs-body-sm: 0.875rem;
+  --fs-caption: 0.78125rem;
+  --fs-overline: 0.71875rem;
+  --fs-mono: 0.84375rem;
+
+  --lh-display: 1.05;
+  --lh-display-2: 1.1;
+  --lh-heading: 1.2;
+  --lh-h3: 1.3;
+  --lh-body: 1.75;
+  --lh-tight: 1.5;
+
+  --ls-display: -0.03em;
+  --ls-display-2: -0.02em;
+  --ls-heading: -0.015em;
+  --ls-overline: 0.08em;
+  --ls-caption: 0.01em;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---------- 6.3 Spacing (4px base) ---------- */
+  --sp-2: 2px;
+  --sp-4: 4px;
+  --sp-6: 6px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-40: 40px;
+  --sp-48: 48px;
+  --sp-56: 56px;
+  --sp-64: 64px;
+  --sp-80: 80px;
+  --sp-96: 96px;
+  --sp-120: 120px;
+
+  /* ---------- 6.3 Layout ---------- */
+  --w-reading: 720px;
+  --w-content: 1200px;
+  --w-wide: 1360px;
+  --w-toc: 240px;
+  --gutter: 20px;
+  --nav-h: 64px;
+  --section-gap: clamp(64px, 8vw, 120px);
+
+  /* ---------- 6.3 Radius ---------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------- 6.3 Elevation ---------- */
+  --e1: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --e2: 0 4px 12px -2px rgba(16, 24, 40, 0.08);
+  --e3: 0 12px 32px -8px rgba(16, 24, 40, 0.14);
+  --e4: 0 24px 60px -16px rgba(16, 24, 40, 0.2);
+
+  /* ---------- 6.5 Motion ---------- */
+  --dur-fast: 140ms;
+  --dur-base: 220ms;
+  --dur-slow: 360ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------- z-index scale ---------- */
+  --z-progress: 60;
+  --z-nav: 50;
+  --z-filter: 40;
+  --z-drawer: 80;
+  --z-search: 90;
+  --z-backtop: 70;
+}
+
+/* ============================================================================
+   Dark theme — see DESIGN-V2 §6.1
+   In dark mode elevation is expressed by a lighter surface + a visible border
+   rather than by shadow, since shadows are nearly invisible on dark grounds.
+   ========================================================================= */
+:root[data-theme='dark'] {
+  --brand-50: #141c33;
+  --brand-100: #1c2745;
+  --brand-200: #2b3c6b;
+  --brand-400: #8ba4ff;
+  --brand-500: #6e8cf3;
+  --brand-600: #7c96ff;
+  --brand-700: #9db2ff;
+  --brand-900: #dbe3ff;
+
+  --accent-50: #211c12;
+  --accent-100: #2e2515;
+  --accent-500: #d8ae63;
+  --accent-600: #c8963c;
+  --accent-800: #f0dcb4;
+
+  --success: #34d399;
+  --success-bg: #10251d;
+  --success-text: #6ee7b7;
+  --warning: #f5b942;
+  --warning-bg: #2a2011;
+  --warning-text: #fcd34d;
+  --danger: #f87171;
+  --danger-bg: #2b1516;
+  --danger-text: #fca5a5;
+
+  --cat-ai: #7c96ff;
+  --cat-fullstack: #3dd9c4;
+  --cat-enterprise: #a78bfa;
+  --cat-tools: #d8ae63;
+
+  --bg-0: #080b12;
+  --bg-1: #0d1219;
+  --bg-2: #141a24;
+
+  --line: #1f2733;
+  --line-strong: #2c3542;
+  --line-soft: #171e28;
+
+  --text-hi: #edf1f7;
+  --text: #c3cbd8;
+  --text-lo: #8b95a5;
+  --text-placeholder: #6b7688;
+
+  --link: var(--brand-600);
+  --link-hover: var(--brand-700);
+
+  --btn-primary-bg: #7c96ff;
+  --btn-primary-bg-hover: #9db2ff;
+  --btn-primary-fg: #0b1220;
+
+  --nav-bg: rgba(8, 11, 18, 0.86);
+  --nav-border: var(--line);
+
+  --focus-ring: var(--brand-400);
+
+  --e1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --e2: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  --e3: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  --e4: 0 24px 60px -16px rgba(0, 0, 0, 0.7);
+}
+
+/* ---------- Responsive gutter escalation (DESIGN-V2 §7.1) ---------- */
+@media (min-width: 480px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 40px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --gutter: 48px;
+  }
+}

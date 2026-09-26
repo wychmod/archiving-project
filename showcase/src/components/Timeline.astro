@@ -1,0 +1,252 @@
+---
+/**
+ * Archive timeline — vertical axis grouped by year and month.
+ * Spec: DESIGN-V2 §4.5
+ */
+import Icon from './Icon.astro';
+import { type Locale } from '@/data/i18n';
+import { CATEGORY_MAP } from '@/data/taxonomy';
+import { formatDate, type ProjectRecord } from '@/lib/content';
+import { projectPath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  groups: { year: number; months: { month: number; projects: ProjectRecord[] }[] }[];
+}
+
+const { locale, groups } = Astro.props;
+
+const MONTH_ZH = ['1 月', '2 月', '3 月', '4 月', '5 月', '6 月', '7 月', '8 月', '9 月', '10 月', '11 月', '12 月'];
+const MONTH_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function monthLabel(month: number): string {
+  return locale === 'zh' ? MONTH_ZH[month - 1] : MONTH_EN[month - 1];
+}
+---
+
+<div class="timeline">
+  {
+    groups.map((group) => (
+      <section class="timeline__year">
+        <h2 class="timeline__year-label">
+          {group.year}
+          {locale === 'zh' && <span class="timeline__year-suffix">年</span>}
+        </h2>
+
+        {group.months.map((m) => (
+          <div class="timeline__month">
+            <h3 class="timeline__month-label">{monthLabel(m.month)}</h3>
+
+            <ol class="timeline__list">
+              {m.projects.map((project) => {
+                const meta = CATEGORY_MAP[project.category];
+                return (
+                  <li class="timeline__item" style={`--cat-color: var(${meta.colorVar});`}>
+                    <span class="timeline__node" aria-hidden="true" />
+                    <div class="timeline__card">
+                      <div class="timeline__card-head">
+                        <a class="timeline__title" href={withBase(projectPath(locale, project.ref))}>
+                          {project.name}
+                        </a>
+                        <time class="timeline__date" datetime={project.archivedAt.toISOString()}>
+                          {formatDate(project.archivedAt, locale)}
+                        </time>
+                      </div>
+                      <p class="timeline__sub">{project.subtitle}</p>
+                      <div class="timeline__meta">
+                        <span class="timeline__cat">
+                          <span class="timeline__cat-dot" />
+                          {meta[locale].label}
+                        </span>
+                        {project.repoCleared && (
+                          <span class="timeline__flag">
+                            <Icon name="alert-triangle" size={12} />
+                            {locale === 'zh' ? '原仓库已清空' : 'Upstream cleared'}
+                          </span>
+                        )}
+                        {project.scrubbed && (
+                          <span class="timeline__flag">
+                            <Icon name="shield-check" size={12} />
+                            {locale === 'zh' ? '已脱敏' : 'Scrubbed'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        ))}
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-40);
+  }
+
+  .timeline__year-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-8);
+    color: var(--text-hi);
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-heading);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline__year-suffix {
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-regular);
+  }
+
+  .timeline__month {
+    padding-left: var(--sp-24);
+    border-left: 1px solid var(--line);
+  }
+
+  .timeline__month-label {
+    position: relative;
+    margin: var(--sp-24) 0 var(--sp-16);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-caption);
+    text-transform: uppercase;
+  }
+
+  .timeline__month-label::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--sp-24) * -1 - 4px);
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: var(--accent-500);
+  }
+
+  .timeline__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+  }
+
+  .timeline__item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .timeline__node {
+    position: absolute;
+    left: calc(var(--sp-24) * -1 - 2px);
+    top: var(--sp-20);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--cat-color);
+    opacity: 0;
+  }
+
+  .timeline__card {
+    flex: 1;
+    min-width: 0;
+    padding: var(--sp-16) var(--sp-20);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--cat-color);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    background: var(--bg-0);
+    transition: transform var(--dur-base) var(--ease-standard),
+      box-shadow var(--dur-base) var(--ease-standard);
+  }
+
+  .timeline__card:hover {
+    transform: translateX(2px);
+    box-shadow: var(--e2);
+  }
+
+  .timeline__card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-16);
+    flex-wrap: wrap;
+  }
+
+  .timeline__title {
+    color: var(--text-hi);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+
+  .timeline__title:hover {
+    color: var(--link);
+  }
+
+  .timeline__date {
+    color: var(--text-placeholder);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timeline__sub {
+    margin-top: var(--sp-4);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+  }
+
+  .timeline__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-12);
+    margin-top: var(--sp-12);
+  }
+
+  .timeline__cat {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .timeline__cat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cat-color);
+  }
+
+  .timeline__flag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-4);
+    color: var(--text-placeholder);
+    font-size: var(--fs-caption);
+  }
+
+  @media (max-width: 600px) {
+    .timeline__month {
+      padding-left: var(--sp-16);
+    }
+
+    .timeline__card {
+      padding: var(--sp-12) var(--sp-16);
+    }
+  }
+</style>

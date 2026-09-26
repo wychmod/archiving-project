@@ -1,31 +1,26 @@
-# Bundler cache
-.bundle
-vendor
-
-# Generated site output
-_site
-
-# Jekyll cache
-.jekyll-cache
-.jekyll-metadata
-
-# RubyGems
-*.gem
-
-# NPM dependencies
+# ---- Node / Astro (showcase only) ----
 node_modules
-package-lock.json
+dist
+.astro
+.pnpm-store
 
-# IDE & editor
+# ---- Editor / OS ----
 .idea
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/tasks.json
-
-# Misc
-_sass/vendors
-assets/js/dist
-*~
 .DS_Store
 Thumbs.db
+*~
+
+# ---- Ruby / Jekyll (the retired toolchain) ----
+# The site was rebuilt on Astro; these entries stay only so that a stray
+# artefact from an old local checkout can never be committed by accident.
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+_site
+.bundle
+vendor
+*.gem

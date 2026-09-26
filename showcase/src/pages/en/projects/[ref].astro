@@ -1,0 +1,27 @@
+---
+/**
+ * Project detail routes (en).
+ */
+import { render } from 'astro:content';
+import { getCollection } from 'astro:content';
+import ProjectLayout from '@/layouts/ProjectLayout.astro';
+import { getProjects, type ProjectRecord } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('projects', (e) => e.data.lang === 'en');
+  return entries.map((entry) => ({
+    params: { ref: entry.data.ref },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const projects = await getProjects('en');
+const { Content } = await render(entry);
+
+const project = projects.find((p) => p.ref === entry.data.ref) as ProjectRecord;
+---
+
+<ProjectLayout locale="en" project={project} siblings={projects}>
+  <Content />
+</ProjectLayout>

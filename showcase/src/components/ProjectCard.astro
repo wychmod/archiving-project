@@ -1,0 +1,286 @@
+---
+/**
+ * Project card — the primary unit of the index.
+ *
+ * Grid variant: generated cover + badge + title + summary + stack chips + meta.
+ * List variant: compact row with a category colour rail, used by the list view.
+ * Spec: DESIGN-V2 §4.3, §6.6
+ */
+import Cover from './Cover.astro';
+import CategoryBadge from './CategoryBadge.astro';
+import StatusStamp from './StatusStamp.astro';
+import Icon from './Icon.astro';
+import { CATEGORY_MAP, stackLabel, type Locale } from '@/data/taxonomy';
+import { formatDate, type ProjectRecord } from '@/lib/content';
+import { projectPath, withBase } from '@/lib/url';
+
+interface Props {
+  project: ProjectRecord;
+  locale: Locale;
+  view?: 'grid' | 'list';
+  /** Cap the number of stack chips rendered. */
+  maxChips?: number;
+}
+
+const { project, locale, view = 'grid', maxChips = 4 } = Astro.props;
+
+const meta = CATEGORY_MAP[project.category];
+const href = withBase(projectPath(locale, project.ref));
+const extra = Math.max(0, project.stack.length - maxChips);
+const chips = project.stack.slice(0, maxChips);
+
+/** Facets consumed by the index page's client-side filter. */
+const facets = {
+  'data-ref': project.ref,
+  'data-name': project.name,
+  'data-category': project.category,
+  'data-stack': project.stack.join(','),
+  'data-status': project.status,
+  'data-archived': String(project.archivedAt.getTime()),
+};
+---
+
+{
+  view === 'list' ? (
+    <article class="pcard pcard--list card card--interactive" style={`--cat-color: var(${meta.colorVar});`} {...facets}>
+      <span class="pcard__rail" aria-hidden="true" />
+      <div class="pcard__list-main">
+        <div class="pcard__list-head">
+          <h3 class="pcard__title">
+            <a class="card__link" href={href}>{project.name}</a>
+          </h3>
+          <span class="pcard__date">{formatDate(project.archivedAt, locale)}</span>
+        </div>
+        <p class="pcard__sub">{project.subtitle}</p>
+        <div class="pcard__list-foot">
+          <CategoryBadge category={project.category} locale={locale} size="sm" />
+          <StatusStamp
+            status={project.status}
+            scrubbed={project.scrubbed}
+            repoCleared={project.repoCleared}
+            locale={locale}
+            size="sm"
+            showFlags={false}
+          />
+          <span class="pcard__chips">
+            {project.stack.slice(0, 5).map((key) => (
+              <span class="chip">{stackLabel(key, locale)}</span>
+            ))}
+            {project.stack.length > 5 && <span class="chip">+{project.stack.length - 5}</span>}
+          </span>
+          <Icon name="arrow-right" size={16} class="pcard__arrow" />
+        </div>
+      </div>
+    </article>
+  ) : (
+    <article class="pcard card card--interactive" style={`--cat-color: var(${meta.colorVar});`} {...facets}>
+      <Cover ref={project.ref} name={project.name} color={`var(${meta.colorVar})`} />
+
+      <div class="pcard__body">
+        <div class="pcard__top">
+          <CategoryBadge category={project.category} locale={locale} size="sm" />
+          <StatusStamp
+            status={project.status}
+            scrubbed={project.scrubbed}
+            repoCleared={project.repoCleared}
+            locale={locale}
+            size="sm"
+            showFlags={false}
+          />
+        </div>
+
+        <h3 class="pcard__title">
+          <a class="card__link" href={href}>{project.name}</a>
+        </h3>
+
+        {project.subtitle && <p class="pcard__sub">{project.subtitle}</p>}
+
+        <p class="pcard__desc">{project.description}</p>
+
+        <div class="pcard__chips">
+          {chips.map((key) => (
+            <span class="chip">{stackLabel(key, locale)}</span>
+          ))}
+          {extra > 0 && <span class="chip">+{extra}</span>}
+        </div>
+
+        <div class="pcard__meta">
+          <span class="pcard__date">
+            <Icon name="map-pin" size={13} />
+            {formatDate(project.archivedAt, locale)}
+          </span>
+          {project.repoCleared && (
+            <span class="pcard__flag" title={locale === 'zh' ? '原仓库已清空' : 'Upstream cleared'}>
+              <Icon name="alert-triangle" size={13} />
+            </span>
+          )}
+          {project.scrubbed && (
+            <span class="pcard__flag" title={locale === 'zh' ? '已脱敏' : 'Scrubbed'}>
+              <Icon name="shield-check" size={13} />
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  )
+}
+
+<style>
+  .pcard {
+    position: relative;
+  }
+
+  /* ---------- grid variant ---------- */
+  .pcard__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+    padding: var(--sp-24);
+    flex: 1;
+  }
+
+  .pcard__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-8);
+  }
+
+  .pcard__title {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-h3);
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  .pcard__title a {
+    color: var(--text-hi);
+    text-decoration: none;
+  }
+
+  .pcard:hover .pcard__title a {
+    color: var(--link);
+  }
+
+  .pcard__sub {
+    margin-top: calc(var(--sp-12) * -1 + 2px);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.5;
+  }
+
+  .pcard__desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--text);
+    font-size: var(--fs-body-sm);
+    line-height: 1.7;
+  }
+
+  .pcard__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-6);
+    margin-top: auto;
+    padding-top: var(--sp-4);
+  }
+
+  .pcard__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    padding-top: var(--sp-12);
+    border-top: 1px solid var(--line-soft);
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+  }
+
+  .pcard__date {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+
+  .pcard__flag {
+    display: inline-flex;
+    color: var(--text-placeholder);
+  }
+
+  /* ---------- list variant ---------- */
+  .pcard--list {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .pcard__rail {
+    width: 4px;
+    flex: none;
+    background: var(--cat-color);
+  }
+
+  .pcard__list-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-6);
+    padding: var(--sp-16) var(--sp-20);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pcard__list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-16);
+  }
+
+  .pcard--list .pcard__title {
+    font-size: var(--fs-h4);
+    letter-spacing: -0.01em;
+  }
+
+  .pcard--list .pcard__sub {
+    margin-top: 0;
+  }
+
+  .pcard__list-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-top: var(--sp-4);
+  }
+
+  .pcard__list-foot .chip {
+    font-size: 0.75rem;
+    min-height: 22px;
+  }
+
+  .pcard__arrow {
+    margin-left: auto;
+    color: var(--text-placeholder);
+    transition: transform var(--dur-base) var(--ease-standard),
+      color var(--dur-base) var(--ease-standard);
+  }
+
+  .pcard--list:hover .pcard__arrow {
+    transform: translateX(3px);
+    color: var(--link);
+  }
+
+  @media (max-width: 767px) {
+    .pcard__list-foot .pcard__chips {
+      display: none;
+    }
+
+    .pcard__list-head {
+      flex-direction: column;
+      gap: var(--sp-4);
+    }
+  }
+</style>

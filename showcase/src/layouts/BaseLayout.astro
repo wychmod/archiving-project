@@ -1,0 +1,300 @@
+---
+/**
+ * Base layout — the single shell every page renders inside.
+ *
+ * Owns <head> metadata, the pre-paint theme script, the global chrome
+ * (TopNav / Footer / search / reading progress) and the hreflang wiring.
+ * Spec: DESIGN-V2 §4.1, §5, §8.4
+ */
+// The design system, loaded once for the whole site. Order matters: the token
+// layer defines the custom properties every other stylesheet reads, so it has
+// to come first.
+import '@/styles/tokens.css';
+import '@/styles/global.css';
+
+import TopNav from '@/components/TopNav.astro';
+import Footer from '@/components/Footer.astro';
+import SearchDialog from '@/components/SearchDialog.astro';
+import Icon from '@/components/Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { SITE_URL, type CategoryKey } from '@/data/taxonomy';
+import { getProjects } from '@/lib/content';
+import { absoluteUrl, counterpartPath, withBase } from '@/lib/url';
+
+export interface Props {
+  locale: Locale;
+  title?: string;
+  description?: string;
+  /** Extra keywords for the meta tag. */
+  keywords?: string[];
+  /** Suppress the " · Archiving Project" suffix (used by the home page). */
+  bareTitle?: boolean;
+  /** Open Graph type. */
+  ogType?: 'website' | 'article';
+  /** ISO date for article pages. */
+  publishedAt?: string;
+}
+
+const {
+  locale,
+  title,
+  description,
+  keywords = [],
+  bareTitle = false,
+  ogType = 'website',
+  publishedAt,
+} = Astro.props;
+
+const s = t(locale);
+const projects = await getProjects(locale);
+
+const pageTitle = title
+  ? bareTitle
+    ? title
+    : `${title} · ${s.siteName}`
+  : `${s.siteName} · ${s.tagline}`;
+
+const metaDescription = description ?? s.metaDescription;
+
+const pathname = Astro.url.pathname;
+const counterpart = counterpartPath(pathname, locale === 'en' ? 'zh' : 'en');
+
+const canonical = absoluteUrl(pathname, Astro.site ?? SITE_URL);
+// `counterpartPath` returns a base-free path, so it must go back through
+// `absoluteUrl` — otherwise the alternates point outside the deploy sub-path.
+const zhHref = absoluteUrl(counterpartPath(pathname, 'zh'), Astro.site ?? SITE_URL);
+const enHref = absoluteUrl(counterpartPath(pathname, 'en'), Astro.site ?? SITE_URL);
+
+const buildYear = new Date().getFullYear();
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: s.siteName,
+  description: metaDescription,
+  url: new URL(withBase(locale === 'en' ? '/en/' : '/'), Astro.site ?? SITE_URL).href,
+  inLanguage: locale === 'en' ? 'en' : 'zh-CN',
+  about: {
+    '@type': 'CollectionPage',
+    name: s.projects.title,
+    numberOfItems: projects.length,
+  },
+};
+
+const navProjectLinks = projects.slice(0, 12).map((p) => ({
+  ref: p.ref,
+  name: p.name,
+  category: p.category as CategoryKey,
+}));
+---
+
+<!doctype html>
+<html
+  lang={locale === 'en' ? 'en' : 'zh-CN'}
+  data-theme-mode="system"
+  data-search-projects={s.search.groupProjects}
+  data-search-categories={s.search.groupCategories}
+  data-search-project-kind={locale === 'zh' ? '项目' : 'Project'}
+  data-search-category-kind={locale === 'zh' ? '分类' : 'Category'}
+  data-search-empty={s.search.empty}
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={metaDescription} />
+    {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
+
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="zh-CN" href={zhHref} />
+    <link rel="alternate" hreflang="en" href={enHref} />
+    <link rel="alternate" hreflang="x-default" href={zhHref} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={s.siteName} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === 'en' ? 'en_US' : 'zh_CN'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    {publishedAt && <meta property="article:published_time" content={publishedAt} />}
+
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080b12" media="(prefers-color-scheme: dark)" />
+    <meta name="site-base" content={import.meta.env.BASE_URL} />
+
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={s.siteName}
+      href={withBase(locale === 'en' ? '/en/feed.xml' : '/feed.xml')}
+    />
+    <link rel="sitemap" type="application/xml" href={withBase('/sitemap-index.xml')} />
+
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+    />
+
+    <script is:inline>
+      // Resolve the theme before first paint — prevents a flash of the wrong
+      // theme. Kept inline and tiny on purpose.
+      (function () {
+        try {
+          var mode = localStorage.getItem('ap-theme') || 'system';
+          var dark =
+            mode === 'dark' ||
+            (mode === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          root.dataset.theme = dark ? 'dark' : 'light';
+          root.dataset.themeMode = mode;
+          root.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">{s.nav.skipToContent}</a>
+
+    <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+
+    <TopNav locale={locale} counterpart={counterpart} currentPath={pathname} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <Footer locale={locale} projects={navProjectLinks} buildYear={buildYear} />
+
+    <SearchDialog locale={locale} />
+
+    <button type="button" class="back-to-top" data-back-to-top-float aria-label={s.footer.backToTop} title={s.footer.backToTop}>
+      <Icon name="arrow-up" size={18} />
+    </button>
+
+  </body>
+</html>
+
+<style is:global>
+  .reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 0%;
+    z-index: var(--z-progress);
+    background: linear-gradient(
+      90deg,
+      var(--brand-600),
+      var(--accent-500)
+    );
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard);
+  }
+
+  .reading-progress.is-active {
+    opacity: 1;
+  }
+
+  .back-to-top {
+    position: fixed;
+    right: var(--sp-20);
+    bottom: var(--sp-20);
+    z-index: var(--z-backtop);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-pill);
+    background: var(--bg-0);
+    color: var(--text-lo);
+    box-shadow: var(--e2);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity var(--dur-base) var(--ease-standard),
+      transform var(--dur-base) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard),
+      visibility var(--dur-base);
+  }
+
+  .back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .back-to-top:hover {
+    color: var(--brand-600);
+    border-color: var(--brand-200);
+  }
+</style>
+
+<script>
+  // ---- reading progress -------------------------------------------------
+  const bar = document.querySelector<HTMLElement>('[data-reading-progress]');
+  if (bar) {
+    const update = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      bar.style.width = `${ratio * 100}%`;
+      bar.classList.toggle('is-active', window.scrollY > 120);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+  }
+
+  // ---- back to top ------------------------------------------------------
+  const float = document.querySelector<HTMLElement>('[data-back-to-top-float]');
+  const toTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (float) {
+    const onScroll = () => float.classList.toggle('is-visible', window.scrollY > 600);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    float.addEventListener('click', toTop);
+  }
+
+  document.querySelectorAll('[data-back-to-top]').forEach((el) => {
+    el.addEventListener('click', toTop);
+  });
+
+  // ---- reveal on scroll (one-shot) --------------------------------------
+  const revealables = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  if (revealables.length) {
+    if (
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      'IntersectionObserver' in window
+    ) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+      );
+      revealables.forEach((el) => observer.observe(el));
+    } else {
+      revealables.forEach((el) => el.classList.add('is-visible'));
+    }
+  }
+</script>

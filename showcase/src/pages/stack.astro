@@ -1,0 +1,12 @@
+---
+/**
+ * Technology overview (zh) — the archive sliced by stack.
+ * Spec: DESIGN-V2 §4.6
+ */
+import StackLayout from '@/layouts/StackLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('zh');
+---
+
+<StackLayout locale="zh" projects={projects} />

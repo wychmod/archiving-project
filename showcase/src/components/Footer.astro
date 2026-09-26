@@ -1,0 +1,262 @@
+---
+/**
+ * Site footer — a four-column sitemap plus a base bar.
+ * Spec: DESIGN-V2 §4.2 (block J), §6.6
+ */
+import Icon from './Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { CATEGORIES, REPO_URL, type CategoryKey } from '@/data/taxonomy';
+import {
+  aboutPath,
+  homePath,
+  projectsPath,
+  stackPath,
+  timelinePath,
+  withBase,
+} from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  /** Up to twelve projects for the quick-links column. */
+  projects: { ref: string; name: string; category: CategoryKey }[];
+  buildYear: number;
+}
+
+const { locale, projects, buildYear } = Astro.props;
+const s = t(locale);
+
+const site = [
+  { label: s.nav.home, href: homePath(locale) },
+  { label: s.nav.projects, href: projectsPath(locale) },
+  { label: s.nav.timeline, href: timelinePath(locale) },
+  { label: s.nav.stack, href: stackPath(locale) },
+  { label: s.nav.about, href: aboutPath(locale) },
+];
+
+const docs = [
+  { label: s.about.resourceAgents, href: `${REPO_URL}/blob/main/AGENTS.md`, external: true },
+  { label: s.about.resourceClaude, href: `${REPO_URL}/blob/main/CLAUDE.md`, external: true },
+  { label: s.about.resourceDesign, href: `${REPO_URL}/blob/main/showcase/docs/DESIGN-V2.md`, external: true },
+  { label: s.about.resourceLicense, href: `${REPO_URL}/blob/main/README.md`, external: true },
+];
+
+const catColorFor = (key: CategoryKey) =>
+  `var(${CATEGORIES.find((c) => c.key === key)?.colorVar ?? '--text-lo'})`;
+---
+
+<footer class="footer">
+  <div class="container container--wide">
+    <div class="footer__grid">
+      <div class="footer__col">
+        <p class="footer__head">{s.footer.siteTitle}</p>
+        <ul>
+          {site.map((item) => (
+            <li><a href={withBase(item.href)}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__head">{s.footer.projectsTitle}</p>
+        <ul>
+          {projects.slice(0, 8).map((p) => (
+            <li>
+              <a href={withBase(locale === 'en' ? `/en/projects/${p.ref}/` : `/projects/${p.ref}/`)}>
+                <span class="footer__dot" style={`background: ${catColorFor(p.category)}`}></span>
+                {p.name}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a class="footer__more" href={withBase(projectsPath(locale))}>
+              {s.about.compositionTitle} · {projects.length}
+              <Icon name="arrow-right" size={14} />
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__head">{s.footer.docsTitle}</p>
+        <ul>
+          {docs.map((item) => (
+            <li>
+              <a href={item.href} target="_blank" rel="noopener noreferrer">
+                {item.label}
+                <Icon name="arrow-up-right" size={13} class="footer__ext" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <p class="footer__head">{s.footer.connectTitle}</p>
+        <ul>
+          <li>
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+              <Icon name="github" size={15} />
+              GitHub
+            </a>
+          </li>
+          <li>
+            <a href="mailto:545480453@qq.com">
+              <Icon name="mail" size={15} />
+              {s.footer.email}
+            </a>
+          </li>
+          <li>
+            <a href={withBase('/feed.xml')}>
+              <Icon name="rss" size={15} />
+              {s.footer.rss}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__base">
+      <p class="footer__credit">
+        © {buildYear} wychmod · <span class="footer__license">{s.footer.license}</span>
+      </p>
+      <p class="footer__built">{s.footer.builtWith}</p>
+      <button type="button" class="footer__top" data-back-to-top>
+        <Icon name="arrow-up" size={14} />
+        {s.footer.backToTop}
+      </button>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: var(--section-gap);
+    border-top: 1px solid var(--line);
+    background: var(--bg-1);
+  }
+
+  .footer__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-32);
+    padding-block: var(--sp-64) var(--sp-40);
+  }
+
+  .footer__head {
+    margin-bottom: var(--sp-16);
+    color: var(--text-placeholder);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-overline);
+    text-transform: uppercase;
+  }
+
+  .footer__col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+  }
+
+  .footer__col a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    color: var(--text);
+    font-size: var(--fs-body-sm);
+    line-height: 1.6;
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-standard);
+  }
+
+  .footer__col a:hover {
+    color: var(--link);
+  }
+
+  .footer__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .footer__ext {
+    color: var(--text-placeholder);
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease-standard);
+  }
+
+  .footer__col a:hover .footer__ext {
+    opacity: 1;
+  }
+
+  .footer__more {
+    color: var(--text-lo) !important;
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption) !important;
+  }
+
+  .footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-16);
+    padding-block: var(--sp-20);
+    border-top: 1px solid var(--line);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+  }
+
+  .footer__credit {
+    margin-right: auto;
+  }
+
+  .footer__license {
+    font-family: var(--font-mono);
+  }
+
+  .footer__built {
+    color: var(--text-placeholder);
+  }
+
+  .footer__top {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-6) var(--sp-12);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--text-lo);
+    font-family: inherit;
+    font-size: var(--fs-caption);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .footer__top:hover {
+    background: var(--bg-2);
+    color: var(--text-hi);
+  }
+
+  @media (max-width: 1023px) {
+    .footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .footer__grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-24);
+      padding-block: var(--sp-40) var(--sp-24);
+    }
+
+    .footer__base {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--sp-8);
+    }
+  }
+</style>

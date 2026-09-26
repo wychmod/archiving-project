@@ -1,0 +1,12 @@
+---
+/**
+ * Technology overview (en) — the archive sliced by stack.
+ * Spec: DESIGN-V2 §4.6
+ */
+import StackLayout from '@/layouts/StackLayout.astro';
+import { getProjects } from '@/lib/content';
+
+const projects = await getProjects('en');
+---
+
+<StackLayout locale="en" projects={projects} />

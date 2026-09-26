@@ -1,0 +1,541 @@
+---
+/**
+ * About page — the repository explaining itself.
+ * Spec: DESIGN-V2 §4.7
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/Icon.astro';
+import { t, type Locale } from '@/data/i18n';
+import { REPO_URL } from '@/data/taxonomy';
+import { countByCategory, type ProjectRecord } from '@/lib/content';
+import { projectsPath, withBase } from '@/lib/url';
+
+interface Props {
+  locale: Locale;
+  projects: ProjectRecord[];
+}
+
+const { locale, projects } = Astro.props;
+const s = t(locale);
+
+const counts = countByCategory(projects);
+
+const threeQuestions = [
+  { icon: 'info', title: s.about.q1, desc: s.about.q1Desc },
+  { icon: 'book', title: s.about.q2, desc: s.about.q2Desc },
+  { icon: 'trending-up', title: s.about.q3, desc: s.about.q3Desc },
+];
+
+const solveIcons = ['search', 'layers', 'shield-check', 'github'];
+
+const resources = [
+  { icon: 'github', label: s.about.resourceRepo, href: REPO_URL },
+  { icon: 'file-text', label: s.about.resourceAgents, href: `${REPO_URL}/blob/main/AGENTS.md` },
+  { icon: 'file-text', label: s.about.resourceClaude, href: `${REPO_URL}/blob/main/CLAUDE.md` },
+  { icon: 'file-text', label: s.about.resourceDesign, href: `${REPO_URL}/blob/main/showcase/docs/DESIGN-V2.md` },
+  { icon: 'shield', label: s.about.resourceLicense, href: `${REPO_URL}#-license` },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  title={s.about.title}
+  description={s.about.quote}
+  keywords={['关于', 'about', 'archive repository']}
+>
+  <div class="container container--wide about-page">
+    <!-- ---------- intro ---------- -->
+    <header class="about-intro">
+      <span class="overline">ABOUT</span>
+      <h1 class="about-intro__title">{s.about.title}</h1>
+      <p class="about-intro__quote">{s.about.quote}</p>
+    </header>
+
+    <!-- ---------- three questions ---------- -->
+    <section class="questions">
+      {
+        threeQuestions.map((q) => (
+          <div class="question" data-reveal>
+            <span class="question__icon">
+              <Icon name={q.icon} size={20} strokeWidth={1.6} />
+            </span>
+            <h2 class="question__title">{q.title}</h2>
+            <p class="question__desc">{q.desc}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- ---------- solves / nots ---------- -->
+    <div class="compare">
+      <section class="compare__col">
+        <h2 class="compare__title">
+          <span class="compare__mark compare__mark--yes"><Icon name="check" size={15} strokeWidth={2.4} /></span>
+          {s.about.solvesTitle}
+        </h2>
+        <ul class="solves">
+          {
+            s.about.solves.map((item, i) => (
+              <li class="solves__item">
+                <span class="solves__icon"><Icon name={solveIcons[i] ?? 'check'} size={17} strokeWidth={1.6} /></span>
+                <div>
+                  <p class="solves__title">{item.title}</p>
+                  <p class="solves__desc">{item.desc}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="compare__col">
+        <h2 class="compare__title">
+          <span class="compare__mark compare__mark--no"><Icon name="x" size={15} strokeWidth={2.4} /></span>
+          {s.about.notTitle}
+        </h2>
+        <ul class="nots">
+          {s.about.nots.map((item) => <li class="nots__item">{item}</li>)}
+        </ul>
+      </section>
+    </div>
+
+    <!-- ---------- composition ---------- -->
+    <section class="composition">
+      <h2 class="composition__title">{s.about.compositionTitle}</h2>
+
+      <div class="comp-grid">
+        {
+          counts.map((cat) => (
+            <a
+              class="comp-card"
+              href={withBase(`${projectsPath(locale)}?category=${cat.key}`)}
+              style={`--cat-color: var(${cat.colorVar});`}
+            >
+              <span class="comp-card__rail" />
+              <span class="comp-card__icon">
+                <Icon name={cat.icon} size={20} strokeWidth={1.6} />
+              </span>
+              <span class="comp-card__label">{cat[locale].label}</span>
+              <span class="comp-card__count">
+                {cat.count}
+                <span class="comp-card__unit">{s.home.projectCountSuffix}</span>
+              </span>
+              <span class="comp-card__names">
+                {projects
+                  .filter((p) => p.category === cat.key)
+                  .map((p) => p.name)
+                  .join(' · ')}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- ---------- resources ---------- -->
+    <div class="tail">
+      <section class="tail__col">
+        <h2 class="tail__title">{s.about.resourcesTitle}</h2>
+        <ul class="res">
+          {
+            resources.map((item) => (
+              <li>
+                <a class="res__item" href={item.href} target="_blank" rel="noopener noreferrer">
+                  <Icon name={item.icon} size={17} />
+                  <span class="res__label">{item.label}</span>
+                  <Icon name="arrow-up-right" size={14} class="res__arrow" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="tail__col">
+        <h2 class="tail__title">{s.about.maintainerTitle}</h2>
+        <div class="maintainer">
+          <span class="maintainer__avatar">W</span>
+          <div class="maintainer__body">
+            <p class="maintainer__name">wychmod</p>
+            <p class="maintainer__desc">{s.about.maintainerDesc}</p>
+            <div class="maintainer__links">
+              <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+                <Icon name="github" size={15} /> GitHub
+              </a>
+              <a href="mailto:545480453@qq.com">
+                <Icon name="mail" size={15} /> Email
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    padding-block: var(--sp-48) 0;
+  }
+
+  /* ---------- intro ---------- */
+  .about-intro {
+    max-width: 72ch;
+    padding-bottom: var(--sp-40);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .about-intro__title {
+    font-size: var(--fs-h1);
+    letter-spacing: var(--ls-display-2);
+  }
+
+  .about-intro__quote {
+    margin-top: var(--sp-20);
+    padding-left: var(--sp-20);
+    border-left: 3px solid var(--accent-500);
+    color: var(--text);
+    font-family: var(--font-serif);
+    font-size: clamp(1.125rem, 2vw, 1.375rem);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* ---------- three questions ---------- */
+  .questions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-24);
+    padding-block: var(--sp-40);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .question {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+  }
+
+  .question__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-md);
+    background: var(--bg-2);
+    color: var(--text-lo);
+  }
+
+  .question__title {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+  }
+
+  .question__desc {
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.75;
+  }
+
+  /* ---------- compare ---------- */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-32);
+    padding-block: var(--sp-40);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .compare__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-8);
+    margin-bottom: var(--sp-20);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+  }
+
+  .compare__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex: none;
+  }
+
+  .compare__mark--yes {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  .compare__mark--no {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  .solves {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-16);
+  }
+
+  .solves__item {
+    display: flex;
+    gap: var(--sp-12);
+  }
+
+  .solves__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm);
+    background: var(--brand-50);
+    color: var(--brand-700);
+    flex: none;
+  }
+
+  .solves__title {
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semibold);
+  }
+
+  .solves__desc {
+    margin-top: 2px;
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.7;
+  }
+
+  .nots {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-12);
+  }
+
+  .nots__item {
+    position: relative;
+    padding-left: var(--sp-24);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.7;
+  }
+
+  .nots__item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 10px;
+    height: 1px;
+    background: var(--text-placeholder);
+  }
+
+  /* ---------- composition ---------- */
+  .composition {
+    padding-block: var(--sp-40);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .composition__title {
+    margin-bottom: var(--sp-20);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+  }
+
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: var(--sp-16);
+  }
+
+  .comp-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-6);
+    padding: var(--sp-20);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+    overflow: hidden;
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-standard),
+      box-shadow var(--dur-fast) var(--ease-standard);
+  }
+
+  .comp-card:hover {
+    border-color: color-mix(in srgb, var(--cat-color) 40%, var(--line));
+    box-shadow: var(--e2);
+  }
+
+  .comp-card__rail {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--cat-color);
+  }
+
+  .comp-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: var(--sp-4);
+    border-radius: var(--r-md);
+    background: color-mix(in srgb, var(--cat-color) 12%, transparent);
+    color: var(--cat-color);
+  }
+
+  .comp-card__label {
+    color: var(--text-hi);
+    font-size: var(--fs-body-sm);
+    font-weight: var(--fw-semibold);
+  }
+
+  .comp-card__count {
+    color: var(--text-hi);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .comp-card__unit {
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-regular);
+  }
+
+  .comp-card__names {
+    color: var(--text-lo);
+    font-family: var(--font-mono);
+    font-size: var(--fs-caption);
+    line-height: 1.6;
+  }
+
+  /* ---------- tail ---------- */
+  .tail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-32);
+    padding-block: var(--sp-40);
+  }
+
+  .tail__title {
+    margin-bottom: var(--sp-20);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-semibold);
+  }
+
+  .res {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-8);
+  }
+
+  .res__item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-12);
+    padding: var(--sp-12) var(--sp-16);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg-0);
+    color: var(--text);
+    font-size: var(--fs-body-sm);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-standard),
+      color var(--dur-fast) var(--ease-standard);
+  }
+
+  .res__item:hover {
+    border-color: var(--brand-200);
+    color: var(--brand-700);
+  }
+
+  .res__label {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .res__arrow {
+    color: var(--text-placeholder);
+  }
+
+  .maintainer {
+    display: flex;
+    gap: var(--sp-16);
+    padding: var(--sp-20);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg-0);
+  }
+
+  .maintainer__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-bold);
+    flex: none;
+  }
+
+  .maintainer__name {
+    color: var(--text-hi);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+  }
+
+  .maintainer__desc {
+    margin-top: var(--sp-4);
+    color: var(--text-lo);
+    font-size: var(--fs-body-sm);
+    line-height: 1.7;
+  }
+
+  .maintainer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+    margin-top: var(--sp-12);
+  }
+
+  .maintainer__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-6);
+    color: var(--text-lo);
+    font-size: var(--fs-caption);
+    text-decoration: none;
+  }
+
+  .maintainer__links a:hover {
+    color: var(--link);
+  }
+
+  @media (max-width: 1023px) {
+    .questions,
+    .compare,
+    .tail {
+      grid-template-columns: 1fr;
+    }
+
+    .questions {
+      gap: var(--sp-32);
+    }
+  }
+</style>
