@@ -127,15 +127,18 @@ commitCount: 53                     # 可选,原仓库提交数
 | 类型检查(内容 schema / 组件 props) | `npm run check` |
 | 校验内链是否都在部署 base 内 | `npm run check:links` |
 | 校验设计令牌是否存在未定义引用 | `npm run check:tokens` |
+| 构建 / 预览**根域**版本(base 为空) | `npm run build:root` / `npm run preview:root` |
 
 约定:
 
-- **本地复现 CI 构建时必须带 base**:`MSYS_NO_PATHCONV=1 PAGES_BASE_PATH=/archiving-project npm run build`。Windows 下 Git Bash 会把 `PAGES_BASE_PATH=/archiving-project` 这类环境变量改写成 `C:/…/archiving-project`,`astro.config.mjs` 与 `check-links.mjs` 均已加守卫,遇到非 POSIX 绝对路径会直接报错而不是静默产出错链
+- **base 由 `scripts/astro-with-base.mjs` 统一注入**,`dev` / `build` / `preview` 默认都用 `/archiving-project`(CI 里则用 `configure-pages` 传入的值)。不要绕过它直接跑 `astro build`——除非确实要根域版本,那用 `build:root`
+- **构建与预览的 base 必须一致**。不带 base 构建、却按 `/archiving-project/` 提供服务,会让全部样式与脚本 404,页面"整站没样式"——看起来像 CSS 坏了,其实是配置不匹配。`npm run preview` 会先检查 `dist/` 自报的 base 是否与将要服务的 base 一致,不一致直接报错退出
+- base 在 **Node 里**设置而非 shell,因此 **不需要**任何 `MSYS_NO_PATHCONV=1` 前缀;这同时绕开了 Windows/Git Bash 把 `/archiving-project` 改写成 `C:/…` 的问题(`astro.config.mjs` 与 `check-links.mjs` 仍保留守卫,防止有人手写环境变量)
 - **`check:links` 的 base 来源**:不带参数时从产物里的 `<meta name="site-base">` 自检测(与刚构建的东西天然一致);CI 则**显式传入** `configure-pages` 的 `base_path`,以断言「构建确实用了预期的 base」——这才是更强的检查,否则一个悄悄丢了 base 的构建会自证清白
 - **改动样式后请跑 `npm run check:tokens`**:`var(--x)` 引用不存在的令牌会静默失效(整条声明被丢弃),不报错
 - **改动链接或 base 逻辑后请跑 `npm run check:links`**:它会扫描 `dist/` 里所有 HTML,任何跑出 base 的内链都会失败
 - 新增/修改内容后必须 `npm run build` 通过——Zod schema 会校验 front matter,`ref` 缺任一侧语言会直接失败
-- **`public/.nojekyll` 必须保留且保持为空**:GitHub Pages 若对产物跑 Jekyll,会跳过所有 `_` 开头的路径,`_astro/`(全部样式与脚本)会被整体删掉。当前 `actions/deploy-pages` 流程不跑 Jekyll,此文件是兜底,不要「清理」掉
+- **`public/.nojekyll` 必须保留且保持为空**:GitHub Pages 若对产物跑 Jekyll,会跳过所有 `_` 开头的路径,`_astro/`(全部样式与脚本)会被整体删掉。当前 `actions/deploy-pages` 流程不跑 Jekyll(线上已验证 `_astro/` 可正常访问),此文件是兜底,不要「清理」掉
 - 部署由 `.github/workflows/pages-deploy.yml` 负责(Ruby/Jekyll 三段式已废弃),`PAGES_BASE_PATH` 取自 `configure-pages` 的 `base_path`
 
 ---
