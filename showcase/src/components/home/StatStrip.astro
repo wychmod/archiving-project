@@ -39,8 +39,19 @@ const stats = [
 </section>
 
 <style>
+  /*
+   * The strip deliberately straddles the hero's bottom edge (DESIGN-V2 §4.2 B,
+   * "Hero 下沿重叠卡"), which is why it pulls itself up with a negative margin.
+   *
+   * It must also be lifted into a higher paint layer. `.hero` is
+   * `position: relative` with an opaque background, and positioned boxes paint
+   * above static in-flow ones — so without `position`/`z-index` here the hero
+   * covered the top of every card, flattening their rounded corners and border.
+   */
   .stats {
-    margin-top: calc(var(--sp-32) * -1);
+    position: relative;
+    z-index: 1;
+    margin-top: calc(var(--sp-24) * -1);
     padding-bottom: var(--sp-8);
   }
 
