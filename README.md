@@ -49,8 +49,9 @@
 | 🔐 **凭证已脱敏** | 涉及真实密钥 / Token 的项目在导入时已做安全处理(详见 [🔐 安全声明](#-安全声明)) |
 | 🤖 **AI Agent 友好** | 配套 [`AGENTS.md`](./AGENTS.md) + [`CLAUDE.md`](./CLAUDE.md),自动化工具有规可循 |
 | 📐 **统一元数据** | 每个子项目都有 `ARCHIVE.md`,字段标准化,可被脚本批量解析;并配有 `.gitignore` 防止虚拟环境 / 构建产物再次入库 |
-| 🪶 **零构建依赖** | 纯 Markdown + 源代码快照,无需任何 CI / build 工具链即可阅读 |
+| 🪶 **归档零构建依赖** | `archived-projects/` 是纯 Markdown + 源代码快照,无需任何 CI / build 工具链即可阅读;`showcase/` 是独立的 Astro 展示站,其构建不影响归档内容 |
 | 🌍 **跨文档一致** | `README.md` / `AGENTS.md` / `CLAUDE.md` 三者职责分明、联动可追溯 |
+| 🖥️ **双语展示站** | Astro 构建,中英双语路由(`/` 与 `/en/`)、项目索引 / 时间线 / 技术栈总览 / 搜索,并保留全部旧 URL 重定向 |
 
 ---
 
@@ -174,8 +175,12 @@ archiving-project/
 │   ├── cloud-short-link/              # ARCHIVE.md · Spring Cloud Alibaba 云短链接(已脱敏)
 │   ├── db-router-springboot-starter/  # ARCHIVE.md · 注解式分库分表中间件(原仓库已清空复用)
 │   └── ESContentGen/                  # ARCHIVE.md · Electron 桌面应用骨架
-└── showcase/                          # 展示站(Jekyll + Chirpy,部署到 GitHub Pages)
-    └── docs/DESIGN.md                 # 站点设计说明(双语方案 / 部署 / 内容规范)
+└── showcase/                          # 展示站(Astro 静态站点,部署到 GitHub Pages)
+    ├── src/content/projects/{zh,en}/  # 每个归档项目的中英两条内容条目
+    ├── src/{pages,layouts,components}/ # 路由 / 版式 / 组件
+    ├── src/styles/                    # 设计令牌层 + 全局样式层
+    ├── scripts/                       # 重定向表生成、内链与令牌校验
+    └── docs/DESIGN-V2.md              # 站点设计说明(现行方案)
 ```
 
 ---
@@ -192,7 +197,7 @@ flowchart LR
     B --> B2["归档前清理\nvenv/构建产物/pyc/IDE 配置"]
     B2 --> C["创建 ARCHIVE.md\n标准化字段"]
     C --> D["更新根 README\n项目清单"]
-    D --> G["同步展示站\nshowcase/_posts 中英两篇"]
+    D --> G["同步展示站\nshowcase/src/content 中英两条"]
     G --> E["git commit\narchive: import ..."]
     E --> F["git push\n触发归档"]
 ```
@@ -206,7 +211,7 @@ flowchart LR
 | **3** | **归档前清理** | 剔除 venv / node_modules / 构建产物 / `__pycache__` / `.idea` / 本地数据库等禁止入库文件,确认子项目 `.gitignore`(清单见 [`AGENTS.md`](./AGENTS.md) §3.1) |
 | **4** | **写 `ARCHIVE.md`** | 在子项目根目录新建,字段参考 `AGENTS.md` §2.2(名称 / 简介 / 技术栈 / 学习重点 / 状态 / 来源) |
 | **5** | **更新根 README** | 在「项目清单」表格中追加一行,并按场景分组;若涉及真实凭证,在简介中显式标注「已脱敏」 |
-| **6** | **同步展示站** | 在 `showcase/_posts/` 新增该项目的**中英两篇文章**,front matter 与素材规范见 `AGENTS.md` §2.3 |
+| **6** | **同步展示站** | 在 `showcase/src/content/projects/{zh,en}/` 新增该项目的**中英两条内容条目**,front matter 与素材规范见 `AGENTS.md` §2.3 |
 | **7** | **提交并推送** | commit message 遵循 Conventional Commits:`archive: import <project-name> from <source-url>` |
 
 ---
@@ -252,6 +257,8 @@ flowchart LR
 | Claude 特别要做的事 | [`CLAUDE.md`](./CLAUDE.md) |
 | 仓库目前归档了哪些 | 本文件「[项目清单](#-项目清单)」 |
 | 技术栈覆盖情况 | 本文件「[技术栈分布](#-技术栈分布)」 |
+| 展示站怎么改 / 本地怎么构建校验 | [`AGENTS.md`](./AGENTS.md) §2.3 + §2.4 |
+| 展示站的设计方案 | [`showcase/docs/DESIGN-V2.md`](./showcase/docs/DESIGN-V2.md) |
 
 ---
 
