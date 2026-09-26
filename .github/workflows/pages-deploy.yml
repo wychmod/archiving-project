@@ -31,9 +31,6 @@ jobs:
       run:
         working-directory: showcase
 
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/showcase/Gemfile
-
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -44,39 +41,47 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          ruby-version: 3.4
-          bundler-cache: true
-          working-directory: showcase
+          node-version: 22
+          cache: npm
+          cache-dependency-path: showcase/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check content, layouts and pages
+        # `astro check` validates the content-collection Zod schemas and every
+        # component prop, so a malformed front matter entry or a stale prop name
+        # fails here rather than rendering something subtly wrong.
+        run: npm run check
 
       - name: Build site
-        run: bundle exec jekyll b --baseurl "${{ steps.pages.outputs.base_path }}" -d "$RUNNER_ROOT/_site${{ steps.pages.outputs.base_path }}"
+        # `configure-pages` supplies the repository sub-path; astro.config.mjs
+        # reads it as PAGES_BASE_PATH, so every internal link, redirect and
+        # sitemap entry is emitted already prefixed with it.
+        run: npm run build
         env:
-          JEKYLL_ENV: "production"
-          RUNNER_ROOT: ${{ github.workspace }}
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
-      - name: Test site
-        run: |
-          gem install html-proofer -v '~> 5.0' --no-document
-          set +e
-          htmlproofer "${{ github.workspace }}/_site" \
-            \-\-disable-external \
-            \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/" \
-            > /tmp/proofer.log 2>&1
-          status=$?
-          set -e
-          if [ "$status" != "0" ]; then
-            grep -E '(- |HTML-Proofer|failures|Error)' /tmp/proofer.log | head -40 | sed 's/^/::error::/'
-            tail -5 /tmp/proofer.log | sed 's/^/::error::/'
-            exit "$status"
-          fi
+      - name: Validate internal links stay inside the deploy base
+        # Replaces the old html-proofer pass. The base is passed explicitly
+        # rather than inferred, so this asserts that the build used the base we
+        # expected — a build that silently lost its base would otherwise
+        # self-validate. The failure mode guarded against is a single
+        # un-prefixed path, which only breaks after deployment.
+        run: node scripts/check-links.mjs "${{ steps.pages.outputs.base_path }}"
+
+      - name: Validate design tokens resolve
+        # A `var(--x)` with no definition fails silently and drops the whole
+        # declaration, so a typo looks like a styling choice rather than a bug.
+        run: npm run check:tokens
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: "_site${{ steps.pages.outputs.base_path }}"
+          path: showcase/dist
 
   deploy:
     environment:

@@ -1,8 +1,12 @@
 # Archiving Project · 展示站设计文档
 
+> **⚠️ 本文档已废弃(superseded)。** 站点已按 [`DESIGN-V2.md`](./DESIGN-V2.md) 重构为 Astro 静态站点,不再使用 Jekyll + Chirpy。
+> 本文中**仍然有效**的部分只剩 §4.2(内容规格)与 §6.2(内容模型字段),其余章节(主题复刻、Liquid 覆盖、Ruby 工具链、部署脚本等)仅作历史记录,请勿据此实施。
+> 保留目的:记录 V1 的设计意图与当时的约束,便于回溯「为什么后来要脱框架」。
+
 > 站点目录:`showcase/` · 部署地址:`https://wychmod.github.io/archiving-project/`
-> 主题:**Jekyll Theme Chirpy v7.6**(一比一复刻 https://chirpy.cotes.page/)
-> 定稿日期:2026-09-21 · 状态:**待开发**
+> 主题:**Jekyll Theme Chirpy v7.6**(一比一复刻 https://chirpy.cotes.page/) ← 已废弃
+> 定稿日期:2026-09-21 · 状态:**已被 DESIGN-V2 取代**
 
 ---
 
